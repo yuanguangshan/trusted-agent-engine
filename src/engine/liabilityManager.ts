@@ -39,13 +39,23 @@ export class LiabilityManager {
   /**
    * 判定责任实体
    */
-  attribute(decision: Partial<Decision>): 'ai-agent' | 'human-approver' | 'policy-author' {
+  attribute(decision: Partial<Decision>): 'ai-agent' | 'human-approver' | 'policy-author' | 'system-fault' {
+    // 逻辑漏洞检测：如果没有明确违反规则却被拦截了，归类为系统故障或策略设计缺陷
+    if (decision.allowed === false && (!decision.violations || decision.violations.length === 0)) {
+       // 特殊情况：如果是被异常检测拦截且没有匹配规则
+       if (decision.anomalyReport?.isAnomaly) {
+         return 'ai-agent'; // 依然归类为 AI 行为异常
+       }
+       return 'system-fault';
+    }
+
     if (decision.allowed === false) {
       if (decision.actions?.includes('require_human')) {
         return 'human-approver';
       }
       return 'ai-agent';
     }
+    
     // 如果放行了但有警告，可能是策略定义者的边界问题
     if (decision.violations && decision.violations.length > 0) {
       return 'policy-author';

@@ -4,6 +4,7 @@ import { Proposal, PolicyConfig, Decision, PolicyAction, ValueManifesto } from '
 import { minimatch } from 'minimatch';
 import { LiabilityManager } from './liabilityManager';
 import { AnomalyDetector } from './anomalyDetector';
+import { SafeEvaluator } from './safeEvaluator';
 
 export class PolicyEngine {
   private policy: PolicyConfig;
@@ -25,10 +26,9 @@ export class PolicyEngine {
     let actions: PolicyAction[] = [];
 
     // -----------------------------
-    // 1. Risk Evaluation（风险优先）
+    // 1. Signals Preparation（信号准备）
     // -----------------------------
     let riskLevel: Decision['riskLevel'] = 'low';
-
     for (const risk of this.policy.risks) {
       for (const pattern of risk.match) {
         if (proposal.files.some(file => minimatch(file, pattern))) {
@@ -37,28 +37,33 @@ export class PolicyEngine {
       }
     }
 
+    const anomalyReport = this.anomalyDetector.detect(proposal);
+    const evaluationContext = {
+      payload: proposal,
+      engine: {
+        riskLevel,
+        isAnomaly: anomalyReport.isAnomaly,
+        anomalyScore: anomalyReport.score,
+        isOnlyDocs: proposal.files.every(f => f.endsWith('.md') || f.startsWith('docs/')),
+        isScoped: this.isWithinScope(proposal.files),
+      },
+      anomaly: anomalyReport // v1.1: 别名为 anomaly 方便访问
+    };
+
     // -----------------------------
-    // 2. Rule Evaluation（规则引擎）
+    // 2. Rule Evaluation（规则引擎 - 基于信号）
     // -----------------------------
     for (const rule of this.policy.rules) {
+      // condition: 如果满足，则执行 action
       if (rule.condition) {
-        const triggered = this.evaluateExpression(rule.condition, {
-          engine: { riskLevel },
-          payload: proposal,
-        });
-        if (triggered) {
+        if (SafeEvaluator.evaluate(rule.condition, evaluationContext)) {
           this.applyRuleAction(rule, actions, violations);
         }
       }
 
+      // check: 如果不满足，则执行 action
       if (rule.check) {
-        const passed = this.evaluateExpression(rule.check, {
-          payload: proposal,
-          engine: {
-            isScoped: (files: string[]) => this.isWithinScope(files),
-          },
-        });
-        if (!passed) {
+        if (!SafeEvaluator.evaluate(rule.check, evaluationContext)) {
           this.applyRuleAction(rule, actions, violations);
         }
       }
@@ -68,45 +73,23 @@ export class PolicyEngine {
     // 3. Value & Mercy (Day 16)
     // -----------------------------
     let valueScore = 1.0;
-    // ... value logic (skipped for brevity but assuming it stays) ...
-
-    // -----------------------------
-    // 3.5 Anomaly Detection (Day 19)
-    // -----------------------------
-    const anomalyReport = this.anomalyDetector.detect(proposal);
-    if (anomalyReport.isAnomaly) {
-      actions.push('block');
-      violations.push({
-        ruleId: 'anomaly-detected',
-        description: `Suspicious patterns: ${anomalyReport.reasons.join('; ')}`,
-        level: 'block'
-      });
-    }
     if (this.manifesto) {
-      // 计算价值得分
+      // 计算价值得分（根据规则绑定的价值）
       violations = violations.map(v => {
         const rule = this.policy.rules.find(r => r.id === v.ruleId);
         if (rule?.valueId) {
           const value = this.manifesto?.values.find(val => val.id === rule.valueId);
           if (value) {
             v.valueWeight = value.weight;
-            valueScore -= (value.weight * 0.2); // 简单的惩罚逻辑
+            valueScore -= (value.weight * 0.2);
           }
         }
         return v;
       });
 
-      // 仁慈钩子处理
+      // 仁慈钩子处理（依然使用 SafeEvaluator）
       for (const hook of this.manifesto.mercy_hooks) {
-        const triggered = this.evaluateExpression(hook.condition, {
-          payload: proposal,
-          engine: {
-            riskLevel,
-            isOnlyDocs: (files: string[]) => files.every(f => f.endsWith('.md') || f.startsWith('docs/')),
-          }
-        });
-
-        if (triggered) {
+        if (SafeEvaluator.evaluate(hook.condition, evaluationContext)) {
           if (hook.action === 'downgrade_to_warn') {
             actions = actions.map(a => (a === 'block' || a === 'require_human') ? 'warn' : a as PolicyAction);
             violations = violations.map(v => ({ ...v, level: 'warn' }));
@@ -122,8 +105,7 @@ export class PolicyEngine {
     // -----------------------------
     // 4. Final Decision（裁决合成）
     // -----------------------------
-    const blocked =
-      actions.includes('block') || actions.includes('require_human');
+    const blocked = actions.includes('block') || actions.includes('require_human');
 
     const decision: Decision = {
       allowed: !blocked,
@@ -132,7 +114,7 @@ export class PolicyEngine {
       violations,
       valueScore: Math.max(0, valueScore),
       anomalyReport,
-      auditLog: '', // Will be set below
+      auditLog: '',
     };
 
     if (this.liability) {
@@ -141,10 +123,18 @@ export class PolicyEngine {
         signature: this.liability.generateSignature(proposal, decision),
         creditImpact: this.liability.calculateCreditImpact(decision),
       };
-      this.liability.updateCredits(decision.accountability.creditImpact);
+      // v1.1: 只有非系统故障才更新信用
+      if (decision.accountability.responsibleEntity !== 'system-fault') {
+        this.liability.updateCredits(decision.accountability.creditImpact);
+      }
     }
 
     decision.auditLog = this.buildAuditLog(proposal, actions, violations);
+
+    // v1.1: 共识引擎接入点
+    if (this.policy.requiresConsensus) {
+      decision.auditLog += '\n[NOTICE] This decision requires multi-party consensus verification.';
+    }
 
     return decision;
   }
@@ -171,23 +161,6 @@ export class PolicyEngine {
     );
   }
 
-  // -----------------------------
-  // Expression Evaluator
-  // -----------------------------
-  private evaluateExpression(
-    expression: string,
-    context: Record<string, any>
-  ): boolean {
-    try {
-      const fn = new Function(
-        ...Object.keys(context),
-        `return (${expression});`
-      );
-      return Boolean(fn(...Object.values(context)));
-    } catch (e) {
-      return false;
-    }
-  }
 
   // -----------------------------
   // Audit Log

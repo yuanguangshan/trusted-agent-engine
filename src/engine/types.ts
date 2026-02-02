@@ -17,19 +17,30 @@ export interface Proposal {
 
 // 2. 配置：加载进来的 Policy
 export interface PolicyConfig {
-  meta: { mode: 'strict' | 'monitor' };
+  meta: { 
+    mode: 'strict' | 'monitor';
+    privileges?: string[]; // v1.1: 明确声明规则拥有的特权
+  };
   scopes: Array<{ id: string; allow: string[] }>;
   risks: Array<{ id: string; level: 'low' | 'medium' | 'high'; match: string[] }>;
-  rules: Array<{ id: string; check?: string; condition?: string; action: PolicyAction; description: string; valueId?: string }>;
+  rules: Array<{ 
+    id: string; 
+    check?: any;      // v1.1: 支持 JSON Logic 对象
+    condition?: any;  // v1.1: 支持 JSON Logic 对象
+    action: PolicyAction; 
+    description: string; 
+    valueId?: string 
+  }>;
+  requiresConsensus?: boolean; // v1.1: 是否需要多方共识
 }
 
 export interface ValueManifesto {
   values: Array<{ id: string; weight: number; description: string }>;
-  mercy_hooks: Array<{ id: string; condition: string; action: string; description: string }>;
+  mercy_hooks: Array<{ id: string; condition: any; action: string; description: string }>;
 }
 
 export interface Accountability {
-  responsibleEntity: 'ai-agent' | 'human-approver' | 'policy-author';
+  responsibleEntity: 'ai-agent' | 'human-approver' | 'policy-author' | 'system-fault';
   signature: string;        // 决策指纹
   creditImpact: number;     // 对信用池的影响
 }
