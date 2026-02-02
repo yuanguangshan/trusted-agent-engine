@@ -1,3 +1,486 @@
+# Project Documentation
+
+- **Generated at:** 2026-02-03 01:24:45
+- **Root Dir:** `.`
+- **File Count:** 38
+- **Total Size:** 252.34 KB
+
+<a name="toc"></a>
+## 📂 扫描目录
+- [.gitignore](#📄-gitignore) (2 lines, 0.02 KB)
+- [LICENSE](#📄-license) (21 lines, 1.06 KB)
+- [SPECIFICATION.md](#📄-specificationmd) (56 lines, 2.50 KB)
+- [agent.policy.yaml](#📄-agentpolicyyaml) (52 lines, 1.46 KB)
+- [agent.policy.yaml.sig](#📄-agentpolicyyamlsig) (1 lines, 0.09 KB)
+- [docs/GovernanceKernel.md](#📄-docsgovernancekernelmd) (239 lines, 5.19 KB)
+- [jest.config.js](#📄-jestconfigjs) (5 lines, 0.11 KB)
+- [package-lock.json](#📄-package-lockjson) (4928 lines, 172.98 KB)
+- [package.json](#📄-packagejson) (44 lines, 0.98 KB)
+- [scripts/populate_history.ts](#📄-scriptspopulate_historyts) (38 lines, 1.34 KB)
+- [src/cli.ts](#📄-srcclits) (150 lines, 4.85 KB)
+- [src/engine/anomalyDetector.ts](#📄-srcengineanomalydetectorts) (61 lines, 1.75 KB)
+- [src/engine/assetManager.ts](#📄-srcengineassetmanagerts) (68 lines, 2.03 KB)
+- [src/engine/consensus.ts](#📄-srcengineconsensusts) (87 lines, 2.50 KB)
+- [src/engine/contextBank.ts](#📄-srcenginecontextbankts) (59 lines, 1.67 KB)
+- [src/engine/diffParser.ts](#📄-srcenginediffparserts) (79 lines, 1.96 KB)
+- [src/engine/evaluator.ts](#📄-srcengineevaluatorts) (205 lines, 6.58 KB)
+- [src/engine/liabilityManager.ts](#📄-srcengineliabilitymanagerts) (86 lines, 2.69 KB)
+- [src/engine/policyLoader.ts](#📄-srcenginepolicyloaderts) (23 lines, 0.87 KB)
+- [src/engine/safeEvaluator.ts](#📄-srcenginesafeevaluatorts) (32 lines, 0.96 KB)
+- [src/engine/selfAudit.ts](#📄-srcengineselfauditts) (70 lines, 2.13 KB)
+- [src/engine/sovereign.ts](#📄-srcenginesovereignts) (32 lines, 0.79 KB)
+- [src/engine/types.ts](#📄-srcenginetypests) (123 lines, 3.19 KB)
+- [src/index.ts](#📄-srcindexts) (67 lines, 2.29 KB)
+- [src/server.ts](#📄-srcserverts) (49 lines, 1.14 KB)
+- [src/sign.ts](#📄-srcsignts) (35 lines, 1.26 KB)
+- [tests/accountability.test.ts](#📄-testsaccountabilitytestts) (53 lines, 1.69 KB)
+- [tests/anomaly.test.ts](#📄-testsanomalytestts) (39 lines, 1.55 KB)
+- [tests/asset_manager.test.ts](#📄-testsasset_managertestts) (40 lines, 1.49 KB)
+- [tests/consensus.test.ts](#📄-testsconsensustestts) (46 lines, 1.67 KB)
+- [tests/diff_parser.test.ts](#📄-testsdiff_parsertestts) (51 lines, 1.84 KB)
+- [tests/golden_set.test.ts](#📄-testsgolden_settestts) (87 lines, 2.76 KB)
+- [tests/self_audit.test.ts](#📄-testsself_audittestts) (37 lines, 1.48 KB)
+- [tests/sovereignty.test.ts](#📄-testssovereigntytestts) (58 lines, 1.89 KB)
+- [tests/value_mercy.test.ts](#📄-testsvalue_mercytestts) (66 lines, 1.86 KB)
+- [todo.md](#📄-todomd) (621 lines, 12.19 KB)
+- [tsconfig.json](#📄-tsconfigjson) (16 lines, 0.35 KB)
+- [value_manifesto.yaml](#📄-value_manifestoyaml) (33 lines, 1.16 KB)
+
+---
+
+## 📄 .gitignore
+
+````text
+node_modules
+.ai
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 LICENSE
+
+````text
+MIT License
+
+Copyright (c) 2026 Yuangs AI Agent Governance Team
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 SPECIFICATION.md
+
+````markdown
+# Trusted AI Agent Governance Engine - 技术详细说明文档 (Specification)
+
+## 1. 核心概述
+
+Trusted AI Agent Governance Engine 是一个基于 **“主权先于智能” (Sovereignty over Intelligence)** 原则构建的 AI 行为准则执行系统。它不依赖于 AI 的自觉性，而是通过一个物理脱钩的、基于规则与权重的本地引擎，对 AI 提出的任何代码变更（Diff）进行事实性的准入审计。
+
+## 2. 架构设计 (Architecture)
+
+系统采用分层治理架构，每一层都为最终决策贡献权重或执行硬性阻断：
+
+### A. 静态治理层 (Static Governance)
+
+- **Scope Enforcement**: 定义 AI 可触碰的目录边界（Glob Patterns）。
+- **Risk Gate**: 识别高危特征（如 `.env`, `auth/*`, `docker-compose`），触发 `require_human` 或 `block`。
+
+### B. 动态感知层 (Dynamic Perception)
+
+- **Anomaly Detection**: 采用多维评分（规模、分散度、熵分析）识别“语义走私”或代码混淆。
+- **Diff Parser**: 自研的高可靠性统一 Diff 解析器，确保审计基于事实变更而非 AI 描述。
+
+### C. 价值与责任层 (Value & Accountability)
+
+- **Value Manifesto**: 根据项目愿景设置价值权重（如安全性 > 效率），计算 **Value Score**。
+- **Mercy Hooks**: 定义紧急情况下的降级逻辑（如 `emergency_fix`）。
+- **Credit Staking**: AI 拥有初始信用分，违规将导致信用坍缩，影响后续提案的通过率。
+
+### D. 主权安全层 (Sovereign Layer)
+
+- **Ed25519 Signing**: 治理政策必须经过主权者私钥签名。任何未签名或签名不匹配的政策更改将被系统物理拒绝。
+
+---
+
+## 3. 核心算法说明
+
+### 3.1 异常评分算法 (Anomaly Scoring)
+
+`Score = (LargeDiff ? 0.4 : 0) + (Obfuscation ? 0.6 : 0) + (SpreadFiles ? 0.3 : 0)`
+
+- 当 `Score >= 0.7` 时，系统自动判定为异常并执行 `Block`。
+
+### 3.2 治理自审算法 (Self-Audit)
+
+- **Policy Drift**: 计算 $RecentSuccessRate - HistoricalSuccessRate$。
+- **Permission Creep**: 监控 AI 触碰的 Top-level Directory 增长速率。
+
+### 3.3 共识算法 (Consensus)
+
+- 对于多模型审计，采用 **“多数赞成 + 一票否决”** 机制。权重 $\ge 0.5$ 的投票者拥有针对安全红线的 Veto 权。
+
+---
+
+## 4. 数据结构模型 (Data Assets)
+
+- **Proposal**: 包含 ID, Author, Reasoning, Files, Diff。
+- **Decision**: 包含 Allowed, RiskLevel, Violations, Accountability, ValueScore。
+- **Governance Asset**: 从历史中挖掘的“提拔”或“硬化”建议。
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 agent.policy.yaml
+
+````yaml
+# agent.policy.yaml
+# Trusted (Yuangs) Agent - Default Policy v1.0
+
+meta:
+  name: "trusted-default-v1"
+  version: "1.0.0"
+  mode: "strict" # options: strict | monitor
+
+# 1. 作用域定义 (Scope)
+# AI 只能在这些围栏里活动
+scopes:
+  - id: "source-code"
+    allow: ["src/**", "lib/**", "components/**", "learning/AI/trusted-agent/**"]
+  - id: "documentation"
+    allow: ["docs/**", "README.md"]
+
+# 2. 风险定义 (Risk Packs)
+# 触碰这些地方会被视为高风险，必须人工确认
+risks:
+  - id: "infra-danger"
+    level: "high"
+    match: ["**/.env*", "**/docker-compose.yml", "**/*.tf"]
+  - id: "auth-module"
+    level: "high"
+    match: ["src/auth/**", "src/security/**"]
+
+# 3. 核心规则 (Rules)
+# 这是不可逾越的红线
+rules:
+  # 完整性规则
+  - id: "must-have-diff"
+    description: "Reject any proposal without explicit diff content"
+    check: "payload.diff.length > 0"
+    action: "block"
+
+  # 边界规则
+  - id: "scope-enforcement"
+    description: "Reject changes outside allowed scopes"
+    check: "engine.isScoped(payload.files)"
+    action: "block"
+
+  # 解释性规则
+  - id: "reasoning-required"
+    description: "Must provide context/reasoning for changes"
+    check: "payload.reasoning.length > 10"
+    action: "warn" # v1阶段先警告，v2改为block
+
+  # 风险控制规则
+  - id: "high-risk-gate"
+    description: "High risk changes require explicit human confirmation"
+    condition: "engine.riskLevel == 'high'"
+    action: "require_human"
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 agent.policy.yaml.sig
+
+````text
+EtP/sCdbCIXwza22EDmoEXbW4XJfhjNKzdc7q0N4pVfVII6gIbcjZCXeLPop8rKC8UObM2R6uG8ooqeZSYi6CQ==
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 docs/GovernanceKernel.md
+
+````markdown
+
+# Governance Kernel  
+## A Deterministic, Accountable Decision Governance Core for Autonomous Agents  
+**Version:** 1.1  
+**Status:** Hardened  
+**Date:** 2026‑02‑03
+
+---
+
+## 摘要（Abstract）
+
+随着自主系统逐步获得执行权，**“谁为决策负责”**成为比“决策是否聪明”更关键的问题。  
+Governance Kernel 是一个**与模型能力解耦**的决策治理内核，用于在 AI / 自动化系统中提供：
+
+- 可验证的决策边界  
+- 明确的人‑机责任划分  
+- 不可篡改的审计轨迹  
+- 对失败与异常的制度化处理方式  
+
+本系统不试图让 AI 更聪明，而是**防止系统在错误时推卸责任**。
+
+---
+
+## 1. 设计目标（Design Goals）
+
+Governance Kernel 的核心目标不是性能，而是**治理确定性（Governance Determinism）**。
+
+### 1.1 明确的责任归因（Accountability First）
+
+- 每一个决策结果都**必须**能回答：
+  - 是谁提出的？
+  - 为什么被允许 / 拒绝？
+  - 如果出错，谁负责？
+
+### 1.2 治理诚实性（Governance Honesty）
+
+- 不允许“看起来被允许”的决策
+- 不允许“假共识”“隐式权限”“软失败”
+
+> 系统宁可失败，也不伪装成功。
+
+### 1.3 人‑机边界清晰（Human‑in‑the‑Loop by Design）
+
+- 人类不是兜底异常处理器  
+- 人类介入是**显式治理状态**
+
+---
+
+## 2. 系统定位（What Governance Kernel Is / Is Not）
+
+### Governance Kernel 是：
+
+- ✅ 决策治理内核（decision governance core）
+- ✅ 责任与审计框架
+- ✅ 模型无关（LLM / rule‑based / hybrid）
+
+### Governance Kernel 不是：
+
+- ❌ 决策模型
+- ❌ 推荐系统
+- ❌ 自动执行引擎
+- ❌ 风险评分器
+
+---
+
+## 3. 核心概念（Core Concepts）
+
+### 3.1 Proposal（提案）
+
+```ts
+author: 'ai-agent' | 'human'
+```
+
+- **所有决策必须有作者**
+- 作者类型直接进入责任系统
+- 类型层即治理边界（type‑level governance）
+
+---
+
+### 3.2 Policy（政策）
+
+Policy 是**唯一允许影响决策的规则来源**。
+
+特性：
+
+- YAML 定义
+- 可签名（Sovereign Signature）
+- 支持显式权限声明（privileges）
+
+> 未在 policy 中声明的能力，在系统中视为不存在。
+
+---
+
+### 3.3 Decision（三态决策模型）
+
+Governance Kernel 使用**三态决策模型**，而非简单 allow / deny。
+
+```ts
+allowed: boolean        // 是否允许自动执行
+requiresHuman: boolean // 是否进入人工审批
+```
+
+| 状态 | 说明 |
+|----|----|
+| allowed ✅ | 系统可直接执行 |
+| requiresHuman ✅ | 必须由人类批准 |
+| block ❌ | 系统与人类均不可执行 |
+
+---
+
+## 4. 治理不变量（Governance Invariants）
+
+以下不变量在 v1.1 中被**代码级强制执行**。
+
+### 4.1 anomaly ≠ guilt
+
+异常检测结果 **不会自动触发责任归咎**。
+
+- anomaly = 信号解释失败
+- 不等价于 agent 失职
+
+> 异常是系统问题，除非另有违规证据。
+
+---
+
+### 4.2 require_human ≠ block
+
+- `require_human`：治理升级
+- `block`：治理拒绝
+
+二者在：
+- 决策状态
+- 执行路径
+- 责任归因
+
+上完全不同。
+
+---
+
+### 4.3 Privilege 必须显式声明
+
+- 高风险行为需要 `high-risk-decision` 权限
+- 未声明权限 → **硬失败**
+- 不存在隐式继承或默认升级
+
+---
+
+## 5. 执行与评估流程（Decision Lifecycle）
+
+1. **Proposal 提交**
+2. **Context 注入**
+3. **Policy 加载与验证**
+4. **SafeEvaluator 评估**
+   - 禁止 string / eval
+   - 仅结构化表达式
+5. **Anomaly Detection**
+6. **Decision 合成（三态）**
+7. **Liability Attribution**
+8. **Append‑only 审计记录**
+
+---
+
+## 6. 安全与防护（Security Posture）
+
+### 6.1 执行安全
+
+- ❌ 无 `eval`
+- ❌ 无 `new Function`
+- ❌ 无字符串条件回退
+
+### 6.2 权限安全
+
+- 高风险 action → 必须显式 privilege
+- 缺失权限 → 直接 block
+
+### 6.3 共识安全
+
+- 声明需要共识但未实现 → **fail‑fast**
+- 不允许假共识路径
+
+---
+
+## 7. 责任归因模型（Liability Model）
+
+责任并非总是 AI。
+
+| 场景 | 责任主体 |
+|----|----|
+| 自动放行执行 | ai-agent |
+| require_human 执行 | human-approver |
+| policy 冲突 / anomaly | policy-author |
+| 系统故障 | system-fault |
+
+> Governance Kernel 的目标不是“保护 AI”，  
+> 而是**防止责任漂移**。
+
+---
+
+## 8. 审计与可追溯性（Auditability）
+
+- ContextBank 使用 append‑only JSONL
+- 每条决策拥有完整 trace
+- 为未来 hash‑chain / Merkle 审计预留接口
+
+---
+
+## 9. 版本状态（Version Status）
+
+### v1.1（当前）
+
+✅ 类型级治理闭环  
+✅ 三态决策模型  
+✅ 明确责任归因  
+✅ 无已知隐式升级路径  
+
+### v1.2（规划）
+
+- rule‑level privileges
+- 共识引擎真实接入
+- 审计日志 hash chaining
+
+---
+
+## 10. 一句话定位（Canonical Statement）
+
+> **Governance Kernel 是一个不替 AI 擦屁股的治理内核。**
+
+如果系统出错，它会明确告诉你：  
+**是谁的问题，而不是假装一切正常。**
+
+---
+
+## 结语
+
+Governance Kernel 并不假设 AI 会永远正确。  
+它假设的是：**错误一定会发生，而责任不能消失。**
+
+这不是一个让系统更“聪明”的内核，  
+这是一个让系统**在现实世界中可被信任**的内核。
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 jest.config.js
+
+````javascript
+module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  testMatch: ['**/tests/**/*.test.ts'],
+};
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 package-lock.json
+
+````json
 {
   "name": "trusted-agent-engine",
   "version": "2.0.0",
@@ -4926,3 +5409,2707 @@
     }
   }
 }
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 package.json
+
+````json
+{
+  "name": "trusted-agent-engine",
+  "version": "2.0.0",
+  "description": "Trusted AI Agent Governance Engine",
+  "author": "Yuangs AI Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yuanguangshan/trusted-agent-engine"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "trusted-diff": "dist/cli.js",
+    "trusted-sign": "dist/sign.js"
+  },
+  "scripts": {
+    "test": "jest",
+    "build": "tsc",
+    "cli": "ts-node src/cli.ts",
+    "start-api": "ts-node src/server.ts"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "json-logic-js": "^2.0.5",
+    "minimatch": "^9.0.3",
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/jest": "^29.5.11",
+    "@types/json-logic-js": "^2.0.8",
+    "@types/node": "^20.10.6",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 scripts/populate_history.ts
+
+````typescript
+// scripts/populate_history.ts
+import fs from 'fs';
+import path from 'path';
+import { DecisionTrace } from '../src/engine/types';
+
+const aiDir = path.join(process.cwd(), '.ai');
+const ledgerPath = path.join(aiDir, 'ledger.json');
+
+const history: DecisionTrace[] = [];
+
+// 1. 生成 20 条较老的记录 (100% 成功率)
+for (let i = 0; i < 20; i++) {
+  history.push({
+    allowed: true, riskLevel: 'low', actions: [], violations: [], auditLog: '{}',
+    outcome: 'applied',
+    proposal: {
+      id: `old-${i}`, timestamp: Date.now() - (1000 * 60 * 60 * 24), author: 'ai-agent',
+      reasoning: 'normal', files: [`src/moduleA/file${i}.ts`], diff: '+content'
+    }
+  });
+}
+
+// 2. 生成 10 条最近的记录 (0% 成功率，涉及多目录，高风险)
+for (let i = 0; i < 10; i++) {
+  history.push({
+    allowed: false, riskLevel: 'high', actions: ['block'], violations: [{ ruleId: 'r', description: 'd', level: 'block' }],
+    auditLog: '{}',
+    outcome: 'rejected',
+    proposal: {
+      id: `recent-${i}`, timestamp: Date.now() - (1000 * 60 * i), author: 'ai-agent',
+      reasoning: 'suspicious', files: [`src/newDir${i}/secret.env`], diff: '-secret'
+    }
+  });
+}
+
+if (!fs.existsSync(aiDir)) fs.mkdirSync(aiDir, { recursive: true });
+fs.writeFileSync(ledgerPath, JSON.stringify(history, null, 2));
+console.log('Populated 30 mock history items into .ai/ledger.json');
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 src/cli.ts
+
+````typescript
+#!/usr/bin/env node
+// src/cli.ts
+import { execSync } from 'child_process';
+import path from 'path';
+import { PolicyEngine } from './engine/evaluator';
+import { parseUnifiedDiff } from './engine/diffParser';
+import { loadPolicy } from './engine/policyLoader';
+import { Proposal, DecisionTrace } from './engine/types';
+import { ContextBank } from './engine/contextBank';
+import { AssetManager } from './engine/assetManager';
+import { SelfAuditor } from './engine/selfAudit';
+import fs from 'fs';
+import yaml from 'yaml';
+
+async function main() {
+  const policyPath = path.join(process.cwd(), 'agent.policy.yaml');
+  const pubKeyPath = path.join(process.cwd(), '.ai', 'sovereign.pub');
+  let config;
+  try {
+    const options: any = {};
+    if (fs.existsSync(pubKeyPath)) {
+      options.publicKey = fs.readFileSync(pubKeyPath, 'utf8');
+    }
+    config = loadPolicy(policyPath, options);
+  } catch (e) {
+    console.error(`Error loading policy:`, e instanceof Error ? e.message : e);
+    process.exit(1);
+  }
+
+  const manifestoPath = path.join(process.cwd(), 'value_manifesto.yaml');
+  let manifesto;
+  if (fs.existsSync(manifestoPath)) {
+    try {
+      manifesto = yaml.parse(fs.readFileSync(manifestoPath, 'utf8'));
+    } catch (e) {
+      console.warn('Warning: Failed to load value_manifesto.yaml, proceeding without it.');
+    }
+  }
+
+  const engine = new PolicyEngine(config, manifesto, process.cwd());
+  const bank = new ContextBank(process.cwd());
+
+  // Get diff from git (staged changes)
+  let diff = '';
+  try {
+    diff = execSync('git diff --cached', { maxBuffer: 10 * 1024 * 1024 }).toString();
+    if (!diff) {
+      // Fallback to unstaged changes if no staged changes
+      diff = execSync('git diff', { maxBuffer: 10 * 1024 * 1024 }).toString();
+    }
+  } catch (e) {
+    console.error('Error running git diff. Is this a git repository?', e instanceof Error ? e.message : e);
+    process.exit(1);
+  }
+
+  if (!diff) {
+    console.log('No changes detected.');
+    process.exit(0);
+  }
+
+  const analysis = parseUnifiedDiff(diff);
+  
+  // v1.1 Hardening: 显式区分作者，防止信用系统失真
+  const author = process.argv.some(arg => arg === '--author=ai') ? 'ai-agent' : 'human';
+
+  const proposal: Proposal = {
+    id: `cli-${Date.now()}`,
+    timestamp: Date.now(),
+    author: author as any,
+    reasoning: 'Changes from local environment.', 
+    files: analysis.filesTouched,
+    diff: diff
+  };
+
+  const decision = engine.evaluate(proposal);
+
+  // Record to ContextBank
+  const trace: DecisionTrace = {
+    ...decision,
+    proposal,
+    outcome: decision.allowed ? 'applied' : 'rejected' // Simple logic for CLI
+  };
+  
+  // Await recording and audit (Sprint 3)
+  try {
+    await bank.record(trace);
+    
+    // 资产化记忆挖掘 (Sprint 2 - Day 20)
+    const history = await bank.getHistory();
+    const assetManager = new AssetManager();
+    const assets = assetManager.mine(history);
+    if (assets.length > 0) {
+      console.log('\n--- Governance Insights (Evolved) ---');
+      assets.slice(0, 3).forEach(a => {
+        console.log(`💡 [${a.type.toUpperCase()}] ${a.description}`);
+        console.log(`   Suggestion: ${a.suggestedAction} on "${a.pattern}"`);
+      });
+      fs.writeFileSync(
+        path.join(process.cwd(), '.ai', 'governance_assets.json'),
+        JSON.stringify(assets, null, 2)
+      );
+    }
+
+    // 治理自审 (Sprint 3 - Day 23)
+    const selfAuditor = new SelfAuditor();
+    const report = selfAuditor.audit(history);
+    if (report.findings.length > 0) {
+      console.log(`\n--- System Self-Audit (Health: ${report.healthScore}/100) ---`);
+      report.findings.forEach(f => {
+        console.log(`⚠️ [${f.severity.toUpperCase()}] ${f.type.toUpperCase()}: ${f.message}`);
+      });
+      fs.writeFileSync(
+        path.join(process.cwd(), '.ai', 'audit_report.json'),
+        JSON.stringify(report, null, 2)
+      );
+    }
+  } catch (err) {
+    console.error('Failed to record trace or run audit:', err);
+  }
+
+  console.log('--- Trusted Agent Policy Report ---');
+  console.log(`Result: ${decision.allowed ? '✅ ALLOWED' : '❌ BLOCKED'}`);
+  console.log(`Risk Level: ${decision.riskLevel.toUpperCase()}`);
+  if (decision.valueScore !== undefined) {
+    console.log(`Value Score: ${decision.valueScore.toFixed(2)}`);
+  }
+  
+  if (decision.accountability) {
+    console.log(`Responsibility: ${decision.accountability.responsibleEntity.toUpperCase()}`);
+    console.log(`Signature: ${decision.accountability.signature}`);
+    console.log(`Credit Impact: ${decision.accountability.creditImpact}`);
+  }
+  
+  if (decision.violations.length > 0) {
+    console.log('\nViolations:');
+    decision.violations.forEach((v: any) => {
+      console.log(`- [${v.level.toUpperCase()}] ${v.ruleId}: ${v.description}`);
+    });
+  }
+
+  if (decision.actions.length > 0) {
+    console.log(`\nActions matched: ${decision.actions.join(', ')}`);
+  }
+
+  if (!decision.allowed) {
+    process.exit(1);
+  }
+}
+
+main();
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 src/engine/anomalyDetector.ts
+
+````typescript
+// src/engine/anomalyDetector.ts
+
+import { Proposal, AnomalyReport } from './types';
+
+export class AnomalyDetector {
+  /**
+   * 执行异常检测逻辑
+   * 包含：
+   * 1. 规模异常 (Size Variance): 如果单个 diff 超过 1000 行，标记为风险。
+   * 2. 复杂度异常 (Chaos/Entropy): 如果 diff 中包含大量非 ASCII 字符或混淆模式。
+   * 3. 语义走私 (Smuggling): 如果 diff 包含大量看似无关的小改动。
+   */
+  detect(proposal: Proposal): AnomalyReport {
+    const reasons: string[] = [];
+    let score = 0;
+
+    // 1. 规模检测
+    const lines = proposal.diff.split('\n').length;
+    if (lines > 500) {
+      score += 0.4;
+      reasons.push(`Unusually large diff (${lines} lines). Potential smuggling.`);
+    }
+
+    // 2. 熵分析 (简单混淆检测)
+    if (this.detectObfuscation(proposal.diff)) {
+      score += 0.6;
+      reasons.push('Possible code obfuscation or binary smuggling detected.');
+    }
+
+    // 3. 文件分散度
+    if (proposal.files.length > 10) {
+      score += 0.3;
+      reasons.push(`Too many files touched (${proposal.files.length}). High collateral risk.`);
+    }
+
+    return {
+      isAnomaly: score >= 0.7,
+      score: Math.min(1, score),
+      reasons
+    };
+  }
+
+  private detectObfuscation(diff: string): boolean {
+    // 检查是否包含大量十六进制或 Base64 样式的长字符串
+    const hexPattern = /[0-9a-fA-F]{50,}/;
+    const base64Pattern = /[A-Za-z0-9+/]{100,}={0,2}/;
+    
+    if (hexPattern.test(diff) || base64Pattern.test(diff)) {
+      return true;
+    }
+
+    // 检查不可见字符 (除了常规空白符)
+    const nonAscii = /[^\x00-\x7F]/g;
+    const matches = diff.match(nonAscii);
+    if (matches && matches.length > 20) {
+      return true;
+    }
+
+    return false;
+  }
+}
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 src/engine/assetManager.ts
+
+````typescript
+// src/engine/assetManager.ts
+
+import { DecisionTrace, GovernanceAsset } from './types';
+
+export class AssetManager {
+  /**
+   * 将原始追踪转化为治理资产
+   * 逻辑：
+   * 1. 统计违规高发路径 -> 建议 hardening
+   * 2. 统计频繁成功的路径 -> 建议 promotion
+   */
+  mine(history: DecisionTrace[]): GovernanceAsset[] {
+    const assets: GovernanceAsset[] = [];
+    const violationMap = new Map<string, number>();
+    const successMap = new Map<string, number>();
+
+    for (const trace of history) {
+      if (trace.allowed) {
+        trace.proposal.files.forEach(f => {
+          const dir = this.getDirPattern(f);
+          successMap.set(dir, (successMap.get(dir) || 0) + 1);
+        });
+      } else {
+        trace.violations.forEach(v => {
+          const key = `${v.ruleId}:${trace.proposal.files.join(',')}`;
+          violationMap.set(key, (violationMap.get(key) || 0) + 1);
+        });
+      }
+    }
+
+    // 1. 提取频繁违规 (Threshold: 3次)
+    violationMap.forEach((count, key) => {
+      if (count >= 3) {
+        const [ruleId, files] = key.split(':');
+        assets.push({
+          id: `asset-harden-${Date.now()}-${assets.length}`,
+          type: 'frequent-violation',
+          description: `Rule ${ruleId} violated ${count} times on ${files}`,
+          evidenceCount: count,
+          suggestedAction: 'harden-rule',
+          pattern: files
+        });
+      }
+    });
+
+    // 2. 提取频繁成功 (Threshold: 5次)
+    successMap.forEach((count, pattern) => {
+      if (count >= 5) {
+        assets.push({
+          id: `asset-promote-${Date.now()}-${assets.length}`,
+          type: 'trusted-pattern',
+          description: `Pattern ${pattern} successfully applied ${count} times.`,
+          evidenceCount: count,
+          suggestedAction: 'promote-to-scope',
+          pattern
+        });
+      }
+    });
+
+    return assets;
+  }
+
+  private getDirPattern(filePath: string): string {
+    const parts = filePath.split('/');
+    if (parts.length <= 1) return '*';
+    return `${parts.slice(0, -1).join('/')}/**`;
+  }
+}
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 src/engine/consensus.ts
+
+````typescript
+// src/engine/consensus.ts
+
+import { Vote, ConsensusResult, Decision, PolicyAction } from './types';
+
+export class ConsensusEngine {
+  /**
+   * 达成共识的主要方法
+   * 规则 1：一票否决权 (Veto)。如果任何高权重投票者投了 block，整体结果为 blocked。
+   * 规则 2：加权平均。计算允许与拒绝的加权分比例。
+   */
+  resolve(votes: Vote[]): ConsensusResult {
+    if (votes.length === 0) {
+      throw new Error('No votes provided for consensus');
+    }
+
+    const voters = votes.map(v => v.voterId);
+    let isVetoed = false;
+    let totalWeight = 0;
+    let allowedWeight = 0;
+
+    const allViolations: Decision['violations'] = [];
+    const allActions: PolicyAction[] = [];
+    let maxRiskLevel: Decision['riskLevel'] = 'low';
+
+    for (const vote of votes) {
+      const d = vote.decision;
+      totalWeight += vote.weight;
+
+      // 汇总风险等级
+      if (this.riskToScore(d.riskLevel) > this.riskToScore(maxRiskLevel)) {
+        maxRiskLevel = d.riskLevel;
+      }
+
+      // 汇总违规和行动
+      allViolations.push(...d.violations);
+      allActions.push(...d.actions);
+
+      // 一票否决逻辑
+      if (!d.allowed && vote.weight >= 0.5) { // 权重超过 0.5 的 Block 视为否决
+        isVetoed = true;
+      }
+
+      if (d.allowed) {
+        allowedWeight += vote.weight;
+      }
+    }
+
+    const agreementRate = allowedWeight / totalWeight;
+    const finalAllowed = !isVetoed && agreementRate > 0.6; // 必须无否决且加权通过率 > 60%
+
+    // 合并后的决策
+    const finalDecision: Decision = {
+      allowed: finalAllowed,
+      riskLevel: maxRiskLevel,
+      actions: Array.from(new Set(allActions)),
+      violations: this.uniqueViolations(allViolations),
+      valueScore: votes.reduce((acc, v) => acc + (v.decision.valueScore || 0) * v.weight, 0) / totalWeight,
+      auditLog: `Consensus reached by ${votes.length} voters. Rate: ${agreementRate.toFixed(2)}`
+    };
+
+    return {
+      finalDecision,
+      agreementRate,
+      isVetoed,
+      voters
+    };
+  }
+
+  private riskToScore(level: Decision['riskLevel']): number {
+    switch (level) {
+      case 'high': return 3;
+      case 'medium': return 2;
+      case 'low': return 1;
+      default: return 0;
+    }
+  }
+
+  private uniqueViolations(violations: Decision['violations']): Decision['violations'] {
+    const seen = new Set();
+    return violations.filter(v => {
+      const key = `${v.ruleId}-${v.level}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+}
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 src/engine/contextBank.ts
+
+````typescript
+// src/engine/contextBank.ts
+
+import fs from 'fs';
+import path from 'path';
+import { DecisionTrace } from './types';
+
+export class ContextBank {
+  private storagePath: string;
+
+  constructor(workspaceRoot: string) {
+    this.storagePath = path.join(workspaceRoot, '.ai', 'ledger.jsonl'); // v1.1: 切换到 JSONL (Append-only)
+    this.ensureStorageExists();
+  }
+
+  private ensureStorageExists() {
+    const dir = path.dirname(this.storagePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    if (!fs.existsSync(this.storagePath)) {
+      fs.writeFileSync(this.storagePath, ''); // 初始为空文件
+    }
+  }
+
+  /**
+   * 记录一次决策追踪 (Append-only)
+   */
+  async record(trace: DecisionTrace): Promise<void> {
+    const logEntry = JSON.stringify(trace) + '\n';
+    // v1.1: 直接追加到文件末尾，不再读取全量
+    fs.appendFileSync(this.storagePath, logEntry);
+  }
+
+  /**
+   * 检索历史决策 (Stream Parsing)
+   */
+  async getHistory(): Promise<DecisionTrace[]> {
+    if (!fs.existsSync(this.storagePath)) return [];
+    
+    const content = fs.readFileSync(this.storagePath, 'utf8');
+    const lines = content.trim().split('\n').filter(l => l.length > 0);
+    
+    // 解析每一行 JSON，并保持最新的在前面
+    return lines.map(line => JSON.parse(line)).reverse();
+  }
+
+  /**
+   * 统计最近的成功率
+   */
+  async getSuccessRate(): Promise<number> {
+    const ledger = await this.getHistory();
+    // 只取最近 1000 条
+    const recent = ledger.slice(0, 1000);
+    if (recent.length === 0) return 1;
+    
+    const applied = recent.filter(t => t.outcome === 'applied').length;
+    return applied / recent.length;
+  }
+}
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 src/engine/diffParser.ts
+
+````typescript
+// src/engine/diffParser.ts
+
+export interface DiffAnalysis {
+  filesTouched: string[];
+  additions: number;
+  deletions: number;
+  hunks: number;
+}
+
+/**
+ * Parse unified diff and extract factual change data
+ * Design Principles:
+ * 1. Robustness: Handle standard git diff headers
+ * 2. Independence: No git CLI dependency
+ * 3. Accuracy: Distinguish between file headers and content changes
+ */
+export function parseUnifiedDiff(diff: string): DiffAnalysis {
+  const files = new Set<string>();
+  let additions = 0;
+  let deletions = 0;
+  let hunks = 0;
+
+  const lines = diff.split('\n');
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]; // DON'T trim here yet, we need the first character to be exact
+
+    // 1. diff --git header
+    if (line.startsWith('diff --git ')) {
+      const parts = line.split(' ');
+      const bPath = parts[parts.length - 1]; // b/path
+      if (bPath.startsWith('b/')) {
+        files.add(bPath.substring(2));
+      }
+      continue;
+    }
+
+    // 2. --- and +++ headers
+    if (line.startsWith('--- ') || line.startsWith('+++ ')) {
+      const pathPart = line.substring(4).trim();
+      if (pathPart.startsWith('a/') || pathPart.startsWith('b/')) {
+        files.add(pathPart.substring(2));
+      } else if (pathPart !== '/dev/null' && pathPart !== '') {
+        files.add(pathPart);
+      }
+      continue;
+    }
+
+    // Support for 4+ pluses/minuses (sometimes LLMs do this)
+    if (line.startsWith('----') || line.startsWith('++++')) {
+      continue;
+    }
+
+    // 3. Hunk header
+    if (line.startsWith('@@')) {
+      hunks++;
+      continue;
+    }
+
+    // 4. Content stats
+    // Skip any header-like lines just in case
+    if (line.startsWith('---') || line.startsWith('+++') || line.startsWith('diff --git')) {
+      continue;
+    }
+
+    if (line.startsWith('+')) {
+      additions++;
+    } else if (line.startsWith('-')) {
+      deletions++;
+    }
+  }
+
+  return {
+    filesTouched: Array.from(files),
+    additions,
+    deletions,
+    hunks,
+  };
+}
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 src/engine/evaluator.ts
+
+````typescript
+// src/engine/evaluator.ts
+
+import { Proposal, PolicyConfig, Decision, PolicyAction, ValueManifesto } from './types';
+import { minimatch } from 'minimatch';
+import { LiabilityManager } from './liabilityManager';
+import { AnomalyDetector } from './anomalyDetector';
+import { SafeEvaluator } from './safeEvaluator';
+
+export class PolicyEngine {
+  private policy: PolicyConfig;
+  private manifesto?: ValueManifesto;
+  private liability?: LiabilityManager;
+  private anomalyDetector: AnomalyDetector;
+
+  constructor(policy: PolicyConfig, manifesto?: ValueManifesto, workspaceRoot?: string) {
+    this.policy = policy;
+    this.manifesto = manifesto;
+    this.anomalyDetector = new AnomalyDetector();
+    if (workspaceRoot) {
+      this.liability = new LiabilityManager(workspaceRoot);
+    }
+  }
+
+  evaluate(proposal: Proposal): Decision {
+    let violations: Decision['violations'] = [];
+    let actions: PolicyAction[] = [];
+
+    // -----------------------------
+    // 1. Signals Preparation（信号准备）
+    // -----------------------------
+    let riskLevel: Decision['riskLevel'] = 'low';
+    for (const risk of this.policy.risks) {
+      for (const pattern of risk.match) {
+        if (proposal.files.some(file => minimatch(file, pattern))) {
+          riskLevel = risk.level;
+        }
+      }
+    }
+
+    const anomalyReport = this.anomalyDetector.detect(proposal);
+    const evaluationContext = {
+      payload: proposal,
+      engine: {
+        riskLevel,
+        isAnomaly: anomalyReport.isAnomaly,
+        anomalyScore: anomalyReport.score,
+        isOnlyDocs: proposal.files.every(f => f.endsWith('.md') || f.startsWith('docs/')),
+        isScoped: this.isWithinScope(proposal.files),
+      },
+      anomaly: anomalyReport // v1.1: 别名为 anomaly 方便访问
+    };
+
+    // -----------------------------
+    // 2. Rule Evaluation（规则引擎 - 基于信号）
+    // -----------------------------
+    for (const rule of this.policy.rules) {
+      // condition: 如果满足，则执行 action
+      if (rule.condition) {
+        if (SafeEvaluator.evaluate(rule.condition, evaluationContext)) {
+          this.applyRuleAction(rule, actions, violations);
+        }
+      }
+
+      // check: 如果不满足，则执行 action
+      if (rule.check) {
+        if (!SafeEvaluator.evaluate(rule.check, evaluationContext)) {
+          this.applyRuleAction(rule, actions, violations);
+        }
+      }
+    }
+
+    // -----------------------------
+    // 3. Value & Mercy (Day 16)
+    // -----------------------------
+    let valueScore = 1.0;
+    if (this.manifesto) {
+      // 计算价值得分（根据规则绑定的价值）
+      violations = violations.map(v => {
+        const rule = this.policy.rules.find(r => r.id === v.ruleId);
+        if (rule?.valueId) {
+          const value = this.manifesto?.values.find(val => val.id === rule.valueId);
+          if (value) {
+            v.valueWeight = value.weight;
+            valueScore -= (value.weight * 0.2);
+          }
+        }
+        return v;
+      });
+
+      // 仁慈钩子处理（依然使用 SafeEvaluator）
+      for (const hook of this.manifesto.mercy_hooks) {
+        if (SafeEvaluator.evaluate(hook.condition, evaluationContext)) {
+          if (hook.action === 'downgrade_to_warn') {
+            actions = actions.map(a => (a === 'block' || a === 'require_human') ? 'warn' : a as PolicyAction);
+            violations = violations.map(v => ({ ...v, level: 'warn' }));
+          } else if (hook.action === 'auto_allow') {
+            actions = [];
+            violations = [];
+            break;
+          }
+        }
+      }
+    }
+
+    // -----------------------------
+    // 4. Final Decision（裁决合成）
+    // -----------------------------
+    const isHardBlocked = actions.includes('block');
+    const requiresHuman = actions.includes('require_human');
+
+    const decision: Decision = {
+      allowed: !isHardBlocked && !requiresHuman, // 机器不可直接执行
+      requiresHuman,
+      riskLevel,
+      actions,
+      violations,
+      valueScore: Math.max(0, valueScore),
+      anomalyReport,
+      auditLog: '',
+    };
+
+    if (this.liability) {
+      decision.accountability = {
+        responsibleEntity: this.liability.attribute(decision),
+        signature: this.liability.generateSignature(proposal, decision),
+        creditImpact: this.liability.calculateCreditImpact(decision),
+      };
+      // v1.1: 只有非系统故障才更新信用
+      if (decision.accountability.responsibleEntity !== 'system-fault') {
+        this.liability.updateCredits(decision.accountability.creditImpact);
+      }
+    }
+
+    decision.auditLog = this.buildAuditLog(proposal, actions, violations);
+
+    // v1.1 Hardening: 共识引擎接入点 - 诚实模式 (Fail-fast)
+    if (this.policy.requiresConsensus) {
+      throw new Error(
+        'Policy requires consensus, but consensus enforcement (ConsensusEngine) is not yet active in v1.1. ' +
+        'Please disable requiresConsensus in policy or implement real consensus flow.'
+      );
+    }
+
+    return decision;
+  }
+
+  private applyRuleAction(rule: any, actions: PolicyAction[], violations: Decision['violations']) {
+    const HIGH_RISK_ACTIONS = ['block', 'require_human'];
+
+    // v1.1 Hardening: 强制检查 Policy 是否拥有执行高危动作的特权
+    if (
+      HIGH_RISK_ACTIONS.includes(rule.action) &&
+      !this.policy.meta?.privileges?.includes('high-risk-decision')
+    ) {
+      violations.push({
+        ruleId: 'privilege-violation',
+        description: `Policy rule "${rule.id}" lacks privilege for action: ${rule.action}. Meta privileges must include "high-risk-decision".`,
+        level: 'block'
+      });
+      actions.push('block'); // 权限不足时强制拦截
+      return;
+    }
+
+    actions.push(rule.action);
+
+    const level = (rule.action === 'block' || rule.action === 'require_human') ? 'block' : 'warn';
+    violations.push({
+      ruleId: rule.id,
+      description: rule.description || rule.id,
+      level,
+    });
+  }
+
+  // -----------------------------
+  // Scope Enforcement
+  // -----------------------------
+  private isWithinScope(files: string[]): boolean {
+    const allowedPatterns = this.policy.scopes.flatMap(s => s.allow);
+
+    return files.every(file =>
+      allowedPatterns.some(pattern => minimatch(file, pattern))
+    );
+  }
+
+
+  // -----------------------------
+  // Audit Log
+  // -----------------------------
+  private buildAuditLog(
+    proposal: Proposal,
+    actions: PolicyAction[],
+    violations: Decision['violations']
+  ): string {
+    return JSON.stringify(
+      {
+        proposalId: proposal.id,
+        timestamp: proposal.timestamp,
+        actions,
+        violations,
+      },
+      null,
+      2
+    );
+  }
+}
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 src/engine/liabilityManager.ts
+
+````typescript
+// src/engine/liabilityManager.ts
+
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
+import { Proposal, Decision, Accountability } from './types';
+
+export class LiabilityManager {
+  private ledgerPath: string;
+
+  constructor(workspaceRoot: string) {
+    this.ledgerPath = path.join(workspaceRoot, '.ai', 'credits.json');
+    this.ensureStorageExists();
+  }
+
+  private ensureStorageExists() {
+    const dir = path.dirname(this.ledgerPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    if (!fs.existsSync(this.ledgerPath)) {
+      fs.writeFileSync(this.ledgerPath, JSON.stringify({ agentCredits: 100 }, null, 2));
+    }
+  }
+
+  /**
+   * 计算决策指纹
+   */
+  generateSignature(proposal: Proposal, decision: Partial<Decision>): string {
+    const data = JSON.stringify({
+      p: proposal.id,
+      f: proposal.files,
+      v: decision.violations?.map(v => v.ruleId),
+      a: decision.allowed
+    });
+    return crypto.createHash('sha256').update(data).digest('hex').substring(0, 16);
+  }
+
+  /**
+   * 判定责任实体
+   */
+  attribute(decision: Partial<Decision>): 'ai-agent' | 'human-approver' | 'policy-author' | 'system-fault' {
+    // 逻辑漏洞检测：如果没有明确违反规则却被拦截了，归类为系统故障或策略设计缺陷
+    if (decision.allowed === false && (!decision.violations || decision.violations.length === 0)) {
+       // v1.1 Hardening: 如果只是异常检测拦截（没有明确规则），归类为 policy-author（没说怎么处理该信号）
+       if (decision.anomalyReport?.isAnomaly) {
+         return 'policy-author';
+       }
+       return 'system-fault';
+    }
+
+    if (decision.allowed === false) {
+      if (decision.actions?.includes('require_human')) {
+        return 'human-approver';
+      }
+      return 'ai-agent';
+    }
+    
+    // 如果放行了但有警告，可能是策略定义者的边界问题
+    if (decision.violations && decision.violations.length > 0) {
+      return 'policy-author';
+    }
+    return 'ai-agent';
+  }
+
+  /**
+   * 计算信用影响
+   */
+  calculateCreditImpact(decision: Partial<Decision>): number {
+    if (decision.allowed) return 1; // 成功提案加 1 分
+    if (decision.riskLevel === 'high') return -10; // 触碰高危被拦截扣 10 分
+    return -2; // 普通拦截扣 2 分
+  }
+
+  async updateCredits(impact: number): Promise<number> {
+    const data = JSON.parse(fs.readFileSync(this.ledgerPath, 'utf8'));
+    data.agentCredits += impact;
+    fs.writeFileSync(this.ledgerPath, JSON.stringify(data, null, 2));
+    return data.agentCredits;
+  }
+
+  getCredits(): number {
+    const data = JSON.parse(fs.readFileSync(this.ledgerPath, 'utf8'));
+    return data.agentCredits;
+  }
+}
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 src/engine/policyLoader.ts
+
+````typescript
+// src/engine/policyLoader.ts
+import fs from 'fs';
+import yaml from 'yaml';
+import { PolicyConfig } from './types';
+import { SovereignManager } from './sovereign';
+
+export function loadPolicy(path: string, options?: { publicKey?: string, signaturePath?: string }): PolicyConfig {
+  const content = fs.readFileSync(path, 'utf8');
+
+  if (options?.publicKey) {
+    const sigPath = options.signaturePath || `${path}.sig`;
+    if (!fs.existsSync(sigPath)) {
+      throw new Error(`Policy signature missing at ${sigPath}. Sovereign requirement not met.`);
+    }
+    const signature = fs.readFileSync(sigPath, 'utf8').trim();
+    const isValid = SovereignManager.verifyPolicy(content, signature, options.publicKey);
+    if (!isValid) {
+      throw new Error('Policy signature verification failed. Unauthorized policy modification detected!');
+    }
+  }
+
+  return yaml.parse(content) as PolicyConfig;
+}
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 src/engine/safeEvaluator.ts
+
+````typescript
+// src/engine/safeEvaluator.ts
+
+import jsonLogic from 'json-logic-js';
+
+/**
+ * v1.1 Safe Evaluator
+ * 彻底移除 new Function，改用 JSON Logic。
+ * 它可以防止 RCE 攻击，并且可以被静态审计。
+ */
+export class SafeEvaluator {
+  /**
+   * 执行表达式评估
+   * @param expression JSON Logic 规则对象
+   * @param context 数据上下文
+   */
+  static evaluate(expression: any, context: Record<string, any>): boolean {
+    if (typeof expression === 'string') {
+      // v1.1 Hardening: 彻底禁用字符串表达式，消除 RCE 后门
+      throw new Error(
+        `[Governance Critical] String-based policy conditions are disabled in v1.1 for security. ` +
+        `Detected unsafe condition: "${expression}". Please migrate to JSON Logic.`
+      );
+    }
+
+    try {
+      return Boolean(jsonLogic.apply(expression, context));
+    } catch (e) {
+      console.error(`[Governance Error] Failed to evaluate JSON Logic:`, e);
+      return false;
+    }
+  }
+}
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 src/engine/selfAudit.ts
+
+````typescript
+// src/engine/selfAudit.ts
+
+import { DecisionTrace, SelfAuditReport } from './types';
+
+export class SelfAuditor {
+  /**
+   * 执行治理自审
+   * 目标：检测长期运行中的隐性风险
+   */
+  audit(history: DecisionTrace[]): SelfAuditReport {
+    const findings: SelfAuditReport['findings'] = [];
+    let healthScore = 100;
+
+    if (history.length < 5) {
+      return { timestamp: Date.now(), healthScore, findings };
+    }
+
+    // 1. 成功率飘移检测 (Policy Drift)
+    const recent = history.slice(0, 10);
+    const older = history.slice(10, 30);
+    
+    if (older.length > 5) {
+      const recentRate = recent.filter(t => t.allowed).length / recent.length;
+      const olderRate = older.filter(t => t.allowed).length / older.length;
+
+      if (Math.abs(recentRate - olderRate) > 0.4) {
+        healthScore -= 20;
+        findings.push({
+          severity: 'medium',
+          type: 'policy-drift',
+          message: `Decision pattern alignment shifted significantly: ${recentRate.toFixed(2)} vs ${olderRate.toFixed(2)}`
+        });
+      }
+    }
+
+    // 2. 权限蔓延检测 (Permission Creep)
+    const touchedDirs = new Set<string>();
+    history.forEach(t => t.proposal.files.forEach(f => touchedDirs.add(this.getTopDir(f))));
+    
+    if (touchedDirs.size > 15) {
+      healthScore -= 15;
+      findings.push({
+        severity: 'low',
+        type: 'permission-creep',
+        message: `Agent is interacting with a wide variety of directories (${touchedDirs.size}). Review scope boundaries.`
+      });
+    }
+
+    // 3. 高风险累积 (Risk Accumulation)
+    const highRiskCount = history.filter(t => t.riskLevel === 'high').length;
+    if (highRiskCount / history.length > 0.3) {
+      healthScore -= 30;
+      findings.push({
+        severity: 'high',
+        type: 'risk-accumulation',
+        message: `High percentage of high-risk operations (${(highRiskCount / history.length * 100).toFixed(1)}%). System is under strain.`
+      });
+    }
+
+    return {
+      timestamp: Date.now(),
+      healthScore: Math.max(0, healthScore),
+      findings
+    };
+  }
+
+  private getTopDir(filePath: string): string {
+    return filePath.split('/')[0] || '.';
+  }
+}
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 src/engine/sovereign.ts
+
+````typescript
+// src/engine/sovereign.ts
+import crypto from 'crypto';
+
+export class SovereignManager {
+  /**
+   * 生成主权密钥对
+   */
+  static generateKeyPair() {
+    return crypto.generateKeyPairSync('ed25519', {
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+    });
+  }
+
+  /**
+   * 签名政策内容
+   */
+  static signPolicy(content: string, privateKey: string): string {
+    return crypto.sign(null, Buffer.from(content), privateKey).toString('base64');
+  }
+
+  /**
+   * 校验政策签名
+   */
+  static verifyPolicy(content: string, signature: string, publicKey: string): boolean {
+    try {
+      return crypto.verify(null, Buffer.from(content), publicKey, Buffer.from(signature, 'base64'));
+    } catch (e) {
+      return false;
+    }
+  }
+}
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 src/engine/types.ts
+
+````typescript
+// src/engine/types.ts
+
+// 1. 输入：AI 的提案
+export interface Proposal {
+  id: string;
+  timestamp: number;
+  author: 'ai-agent' | 'human'; // v1.1 Fix: 支持人类作者
+  
+  // 核心载荷
+  reasoning: string;     // AI 必须解释为什么改
+  files: string[];       // 涉及的文件列表
+  diff: string;          // Unified Diff 格式
+  
+  // 元数据（可扩展）
+  tags?: string[];
+}
+
+// 2. 配置：加载进来的 Policy
+export interface PolicyConfig {
+  meta: { 
+    mode: 'strict' | 'monitor';
+    privileges?: string[]; // v1.1: 明确声明规则拥有的特权
+  };
+  scopes: Array<{ id: string; allow: string[] }>;
+  risks: Array<{ id: string; level: 'low' | 'medium' | 'high'; match: string[] }>;
+  rules: Array<{ 
+    id: string; 
+    check?: any;      // v1.1: 支持 JSON Logic 对象
+    condition?: any;  // v1.1: 支持 JSON Logic 对象
+    action: PolicyAction; 
+    description: string; 
+    valueId?: string 
+  }>;
+  requiresConsensus?: boolean; // v1.1: 是否需要多方共识
+}
+
+export interface ValueManifesto {
+  values: Array<{ id: string; weight: number; description: string }>;
+  mercy_hooks: Array<{ id: string; condition: any; action: string; description: string }>;
+}
+
+export interface Accountability {
+  responsibleEntity: 'ai-agent' | 'human-approver' | 'policy-author' | 'system-fault';
+  signature: string;        // 决策指纹
+  creditImpact: number;     // 对信用池的影响
+}
+
+export interface Vote {
+  voterId: string;
+  decision: Decision;
+  weight: number; 
+}
+
+export interface ConsensusResult {
+  finalDecision: Decision;
+  agreementRate: number;    
+  isVetoed: boolean;        
+  voters: string[];
+}
+
+export interface AnomalyReport {
+  isAnomaly: boolean;
+  score: number; // 0-1, higher is more suspicious
+  reasons: string[];
+}
+
+export interface GovernanceAsset {
+  id: string;
+  type: 'frequent-violation' | 'trusted-pattern';
+  description: string;
+  evidenceCount: number;
+  suggestedAction?: 'promote-to-scope' | 'harden-rule';
+  pattern: string;
+}
+
+export interface SelfAuditReport {
+  timestamp: number;
+  healthScore: number; // 0-100
+  findings: Array<{
+    severity: 'low' | 'medium' | 'high';
+    type: 'policy-drift' | 'permission-creep' | 'risk-accumulation';
+    message: string;
+  }>;
+}
+
+export type PolicyAction = 'allow' | 'warn' | 'block' | 'require_human';
+
+// 3. 输出：引擎的判决 (这是最关键的结构)
+export interface Decision {
+  allowed: boolean;      // 机器是否可直接执行
+  requiresHuman: boolean; // v1.1: 是否需要人工审批
+  riskLevel: 'low' | 'medium' | 'high';
+  
+  // 判决详情
+  actions: PolicyAction[];
+  
+  // 违规追溯 (Traceability)
+  violations: Array<{
+    ruleId: string;
+    description: string;
+    level: 'warn' | 'block';
+    valueWeight?: number; // 关联的价值权重
+  }>;
+
+  // 综合评分 (Sprint 2)
+  valueScore?: number; 
+  
+  // 责任归属 (Day 17)
+  accountability?: Accountability;
+
+  // 异常报告 (Day 19)
+  anomalyReport?: AnomalyReport;
+
+  // 审计日志 (存入 Context Bank)
+  auditLog: string; 
+}
+
+// Sprint 2: 资产化与记忆
+export interface DecisionTrace extends Decision {
+  proposal: Proposal;
+  outcome: 'applied' | 'rejected' | 'pending'; // 最终的执行状态
+}
+// test change
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 src/index.ts
+
+````typescript
+// src/index.ts
+
+import { PolicyEngine } from './engine/evaluator';
+import { loadPolicy } from './engine/policyLoader';
+import { Proposal, Decision, ValueManifesto } from './engine/types';
+import { ContextBank } from './engine/contextBank';
+import { SovereignManager } from './engine/sovereign';
+import fs from 'fs';
+import path from 'path';
+import yaml from 'yaml';
+
+// Re-export core types
+export * from './engine/types';
+export { PolicyEngine } from './engine/evaluator';
+export { loadPolicy } from './engine/policyLoader';
+export { SovereignManager } from './engine/sovereign';
+export { parseUnifiedDiff } from './engine/diffParser';
+export { ContextBank } from './engine/contextBank';
+export { AssetManager } from './engine/assetManager';
+export { AnomalyDetector } from './engine/anomalyDetector';
+export { SelfAuditor } from './engine/selfAudit';
+
+/**
+ * TrustedGuard - 高层集成封装
+ * 为其他本地项目提供“零配置”快速治理能力
+ */
+export class TrustedGuard {
+  /**
+   * 一键决策检查
+   * @param workspaceRoot 项目根目录
+   * @param proposal 变更提案
+   */
+  static async evaluate(workspaceRoot: string, proposal: Proposal): Promise<Decision> {
+    const policyPath = path.join(workspaceRoot, 'agent.policy.yaml');
+    const manifestoPath = path.join(workspaceRoot, 'value_manifesto.yaml');
+    const pubKeyPath = path.join(workspaceRoot, '.ai', 'sovereign.pub');
+
+    // 1. 加载主权公钥 (如果存在)
+    let publicKey: string | undefined;
+    if (fs.existsSync(pubKeyPath)) {
+      publicKey = fs.readFileSync(pubKeyPath, 'utf8');
+    }
+
+    // 2. 加载政策 (带签名校验)
+    const config = loadPolicy(policyPath, { publicKey });
+
+    // 3. 加载价值观 (可选)
+    let manifesto: ValueManifesto | undefined;
+    if (fs.existsSync(manifestoPath)) {
+      manifesto = yaml.parse(fs.readFileSync(manifestoPath, 'utf8'));
+    }
+
+    // 4. 执行评估
+    const engine = new PolicyEngine(config, manifesto, workspaceRoot);
+    const decision = engine.evaluate(proposal);
+
+    // 5. 异步记录审计日志
+    const bank = new ContextBank(workspaceRoot);
+    bank.record({
+      ...decision,
+      proposal,
+      outcome: decision.allowed ? 'applied' : 'rejected'
+    }).catch(err => console.error('[TrustedGuard] Failed to record trace:', err));
+
+    return decision;
+  }
+}
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 src/server.ts
+
+````typescript
+// src/server.ts
+import express from 'express';
+import { TrustedGuard } from './index';
+import path from 'path';
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.use(express.json());
+
+/**
+ * Health Check
+ */
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', engine: 'trusted-agent-engine', version: '1.0.0' });
+});
+
+/**
+ * POST /v1/evaluate
+ *Body: {
+ *  workspaceRoot: string,
+ *  proposal: Proposal
+ *}
+ */
+app.post('/v1/evaluate', async (req, res) => {
+  try {
+    const { workspaceRoot, proposal } = req.body;
+
+    if (!workspaceRoot || !proposal) {
+      return res.status(400).json({ error: 'Missing workspaceRoot or proposal in request body' });
+    }
+
+    // 执行审计
+    const decision = await TrustedGuard.evaluate(workspaceRoot, proposal);
+
+    res.json(decision);
+  } catch (error: any) {
+    console.error('[API] Evaluation failed:', error);
+    res.status(500).json({ 
+      error: 'Governance evaluation failed', 
+      message: error.message 
+    });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`🛡️ Trusted Governance API active on http://localhost:${port}`);
+  console.log(`Endpoint: POST /v1/evaluate`);
+});
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 src/sign.ts
+
+````typescript
+// src/sign.ts
+import fs from 'fs';
+import path from 'path';
+import { SovereignManager } from './engine/sovereign';
+
+function main() {
+  const command = process.argv[2];
+  const aiDir = path.join(process.cwd(), '.ai');
+  if (!fs.existsSync(aiDir)) fs.mkdirSync(aiDir, { recursive: true });
+
+  const privKeyPath = path.join(aiDir, 'sovereign.key');
+  const pubKeyPath = path.join(aiDir, 'sovereign.pub');
+
+  if (command === 'init') {
+    const { publicKey, privateKey } = SovereignManager.generateKeyPair();
+    fs.writeFileSync(privKeyPath, privateKey);
+    fs.writeFileSync(pubKeyPath, publicKey);
+    console.log('Sovereign keys generated in .ai/');
+  } else if (command === 'sign') {
+    const policyPath = process.argv[3] || 'agent.policy.yaml';
+    if (!fs.existsSync(privKeyPath)) {
+      console.error('Private key not found. Run init first.');
+      process.exit(1);
+    }
+    const privateKey = fs.readFileSync(privKeyPath, 'utf8');
+    const content = fs.readFileSync(policyPath, 'utf8');
+    const sig = SovereignManager.signPolicy(content, privateKey);
+    fs.writeFileSync(`${policyPath}.sig`, sig);
+    console.log(`Signed ${policyPath}. Signature saved to ${policyPath}.sig`);
+  } else {
+    console.log('Usage: ts-node src/sign.ts <init|sign [policy_path]>');
+  }
+}
+
+main();
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 tests/accountability.test.ts
+
+````typescript
+// tests/accountability.test.ts
+import { PolicyEngine } from '../src/engine/evaluator';
+import { Proposal, PolicyConfig } from '../src/engine/types';
+import fs from 'fs';
+import path from 'path';
+
+const mockPolicy: PolicyConfig = {
+  meta: { mode: 'strict' },
+  scopes: [{ id: 'src', allow: ['src/**'] }],
+  risks: [{ id: 'infra', level: 'high', match: ['**/.env*'] }],
+  rules: [
+    {
+      id: 'no-infra',
+      condition: "engine.riskLevel == 'high'",
+      action: 'block',
+      description: 'Blocking infra'
+    }
+  ]
+};
+
+describe('Accountability Logic (Day 17)', () => {
+  const workspaceRoot = path.join(__dirname, 'tmp_ws');
+  
+  beforeAll(() => {
+    if (!fs.existsSync(workspaceRoot)) fs.mkdirSync(workspaceRoot, { recursive: true });
+  });
+
+  afterAll(() => {
+    if (fs.existsSync(workspaceRoot)) fs.rmSync(workspaceRoot, { recursive: true });
+  });
+
+  test('Should assign responsibility and track credits', () => {
+    const engine = new PolicyEngine(mockPolicy, undefined, workspaceRoot);
+    
+    // 场景：正常提案
+    const p1: Proposal = {
+      id: 'p1', timestamp: Date.now(), author: 'ai-agent',
+      reasoning: 'Good reasoning here', files: ['src/main.ts'], diff: '+log'
+    };
+    const d1 = engine.evaluate(p1);
+    expect(d1.accountability?.responsibleEntity).toBe('ai-agent');
+    expect(d1.accountability?.creditImpact).toBe(1);
+
+    // 场景：被拦截的高危操作
+    const p2: Proposal = {
+      id: 'p2', timestamp: Date.now(), author: 'ai-agent',
+      reasoning: 'Bad reasoning', files: ['.env'], diff: '-secret'
+    };
+    const d2 = engine.evaluate(p2);
+    expect(d2.accountability?.responsibleEntity).toBe('ai-agent');
+    expect(d2.accountability?.creditImpact).toBe(-10);
+  });
+});
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 tests/anomaly.test.ts
+
+````typescript
+// tests/anomaly.test.ts
+import { PolicyEngine } from '../src/engine/evaluator';
+import { Proposal, PolicyConfig } from '../src/engine/types';
+
+const mockPolicy: PolicyConfig = {
+  meta: { mode: 'strict' },
+  scopes: [{ id: 'src', allow: ['src/**'] }],
+  risks: [],
+  rules: []
+};
+
+describe('Anomaly Detection (Day 19)', () => {
+  const engine = new PolicyEngine(mockPolicy);
+
+  test('Should detect multi-factor anomaly (Large + Many Files)', () => {
+    const largeDiff = 'line\n'.repeat(600);
+    const files = Array.from({ length: 11 }, (_, i) => `src/file${i}.ts`);
+    const proposal: Proposal = {
+      id: 'a1', timestamp: Date.now(), author: 'ai-agent',
+      reasoning: 'Massive change', files: files, diff: largeDiff
+    };
+    const decision = engine.evaluate(proposal);
+    // 0.4 (large) + 0.3 (files) = 0.7
+    expect(decision.allowed).toBe(false);
+    expect(decision.anomalyReport?.score).toBeGreaterThanOrEqual(0.7);
+  });
+
+  test('Should detect high-score anomaly (Obfuscation + Large)', () => {
+    const suspiciousDiff = 'const x = "68656c6c6f20776f726c6420746869732069732061206c6f6e672068657820737472696e6720746f2074657374206f62667573636174696f6e20646574656374696f6e";\n' + 'line\n'.repeat(600);
+    const proposal: Proposal = {
+      id: 'a2', timestamp: Date.now(), author: 'ai-agent',
+      reasoning: 'Secret stuff', files: ['src/secret.ts'], diff: suspiciousDiff
+    };
+    const decision = engine.evaluate(proposal);
+    // 0.6 (obfuscation) + 0.4 (large) = 1.0
+    expect(decision.allowed).toBe(false);
+    expect(decision.anomalyReport?.score).toBe(1);
+  });
+});
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 tests/asset_manager.test.ts
+
+````typescript
+// tests/asset_manager.test.ts
+import { AssetManager } from '../src/engine/assetManager';
+import { DecisionTrace, Proposal } from '../src/engine/types';
+
+describe('Asset Manager (Day 20)', () => {
+  const manager = new AssetManager();
+
+  const mockTrace = (allowed: boolean, files: string[], rules: string[] = []): DecisionTrace => ({
+    allowed,
+    riskLevel: 'low',
+    actions: allowed ? [] : ['block'],
+    violations: rules.map(r => ({ ruleId: r, description: r, level: 'block' })),
+    auditLog: 'mock',
+    outcome: allowed ? 'applied' : 'rejected',
+    proposal: {
+      id: 'p', timestamp: 0, author: 'ai-agent', reasoning: 'r',
+      files, diff: 'd'
+    }
+  });
+
+  test('Should suggest promotion for frequent successes', () => {
+    const history: DecisionTrace[] = Array(5).fill(null).map(() => 
+      mockTrace(true, ['src/components/button.tsx'])
+    );
+    const assets = manager.mine(history);
+    const promotion = assets.find(a => a.type === 'trusted-pattern');
+    expect(promotion).toBeDefined();
+    expect(promotion?.pattern).toBe('src/components/**');
+  });
+
+  test('Should suggest hardening for frequent violations', () => {
+    const history: DecisionTrace[] = Array(3).fill(null).map(() => 
+      mockTrace(false, ['src/auth/secret.ts'], ['scope-enforcement'])
+    );
+    const assets = manager.mine(history);
+    const hardening = assets.find(a => a.type === 'frequent-violation');
+    expect(hardening).toBeDefined();
+    expect(hardening?.description).toContain('violated 3 times');
+  });
+});
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 tests/consensus.test.ts
+
+````typescript
+// tests/consensus.test.ts
+import { ConsensusEngine } from '../src/engine/consensus';
+import { Vote, Decision } from '../src/engine/types';
+
+describe('Consensus Engine (Day 18)', () => {
+  const engine = new ConsensusEngine();
+
+  const mockDecision = (allowed: boolean, risk: Decision['riskLevel'] = 'low'): Decision => ({
+    allowed,
+    riskLevel: risk,
+    actions: allowed ? [] : ['block'],
+    violations: [],
+    auditLog: 'mock'
+  });
+
+  test('Should reach agreement when all voters allow', () => {
+    const votes: Vote[] = [
+      { voterId: 'agent-1', weight: 1, decision: mockDecision(true) },
+      { voterId: 'agent-2', weight: 1, decision: mockDecision(true) }
+    ];
+    const result = engine.resolve(votes);
+    expect(result.finalDecision.allowed).toBe(true);
+    expect(result.agreementRate).toBe(1.0);
+  });
+
+  test('Should VETO when a high-weight voter blocks', () => {
+    const votes: Vote[] = [
+      { voterId: 'main-governor', weight: 1.0, decision: mockDecision(false) },
+      { voterId: 'sub-agent', weight: 0.5, decision: mockDecision(true) }
+    ];
+    const result = engine.resolve(votes);
+    expect(result.finalDecision.allowed).toBe(false);
+    expect(result.isVetoed).toBe(true);
+  });
+
+  test('Should FAIL if agreement rate is too low even without veto', () => {
+    const votes: Vote[] = [
+      { voterId: 'a1', weight: 0.4, decision: mockDecision(false) }, // low weight, no veto
+      { voterId: 'a2', weight: 0.6, decision: mockDecision(true) }
+    ];
+    // agreement rate = 0.6 / 1.0 = 0.6. threshold is > 0.6 (60%)
+    const result = engine.resolve(votes);
+    expect(result.finalDecision.allowed).toBe(false);
+    expect(result.agreementRate).toBe(0.6);
+  });
+});
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 tests/diff_parser.test.ts
+
+````typescript
+// tests/diff_parser.test.ts
+import { parseUnifiedDiff } from '../src/engine/diffParser';
+
+describe('Unified Diff Parser - Day 2', () => {
+  
+  test('Standard Git Diff: Extracts modified files correctly', () => {
+    const diff = 'diff --git a/src/app.ts b/src/app.ts\n' +
+                 'index 83db48f..f735c20 100644\n' +
+                 '--- a/src/app.ts\n' +
+                 '+++ b/src/app.ts\n' +
+                 '@@ -1,3 +1,4 @@\n' +
+                 ' console.log("hello");\n' +
+                 '+console.log("world");';
+    const result = parseUnifiedDiff(diff);
+    expect(result.filesTouched).toEqual(['src/app.ts']);
+    expect(result.additions).toBe(1);
+    expect(result.deletions).toBe(0);
+    expect(result.hunks).toBe(1);
+  });
+
+  test('File Deletion: Detects deleted file correctly', () => {
+    const diff = 'diff --git a/src/old.ts b/src/old.ts\n' +
+                 'deleted file mode 100644\n' +
+                 '--- a/src/old.ts\n' +
+                 '+++ /dev/null\n' +
+                 '@@ -1,2 +0,0 @@\n' +
+                 '-console.log("bye");';
+    const result = parseUnifiedDiff(diff);
+    expect(result.filesTouched).toEqual(['src/old.ts']);
+    expect(result.deletions).toBe(1);
+  });
+
+  test('Multiple Files: Handles mixed changes', () => {
+    const diff = 'diff --git a/A.ts b/A.ts\n' +
+                 '--- a/A.ts\n' +
+                 '+++ b/A.ts\n' +
+                 '@@ -1 +1 @@\n' +
+                 '-old\n' +
+                 '+new\n' +
+                 'diff --git a/B.ts b/B.ts\n' +
+                 '--- a/B.ts\n' +
+                 '+++ b/B.ts\n' +
+                 '@@ -5 +5 @@\n' +
+                 '+added';
+    const result = parseUnifiedDiff(diff);
+    expect(result.filesTouched).toEqual(['A.ts', 'B.ts']);
+    expect(result.additions).toBe(2);
+    expect(result.deletions).toBe(1);
+    expect(result.hunks).toBe(2);
+  });
+});
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 tests/golden_set.test.ts
+
+````typescript
+// tests/golden_set.test.ts
+import { PolicyEngine } from '../src/engine/evaluator';
+import { Proposal, PolicyConfig } from '../src/engine/types';
+
+const mockPolicy: PolicyConfig = {
+  meta: { mode: 'strict' },
+  scopes: [
+    { id: 'source-code', allow: ['src/**', 'lib/**', 'components/**'] },
+    { id: 'documentation', allow: ['docs/**', 'README.md'] }
+  ],
+  risks: [
+    { id: 'infra-danger', level: 'high', match: ['**/.env*', '**/docker-compose.yml', '**/*.tf'] },
+    { id: 'auth-module', level: 'high', match: ['src/auth/**', 'src/security/**'] }
+  ],
+  rules: [
+    {
+      id: 'must-have-diff',
+      description: 'Reject any proposal without explicit diff content',
+      check: 'payload.diff.length > 0',
+      action: 'block'
+    },
+    {
+      id: 'scope-enforcement',
+      description: 'Reject changes outside allowed scopes',
+      check: 'engine.isScoped(payload.files)',
+      action: 'block'
+    },
+    {
+      id: 'reasoning-required',
+      description: 'Must provide context/reasoning for changes',
+      check: 'payload.reasoning.length > 10',
+      action: 'warn'
+    },
+    {
+      id: 'high-risk-gate',
+      description: 'High risk changes require explicit human confirmation',
+      condition: "engine.riskLevel == 'high'",
+      action: 'require_human'
+    }
+  ]
+};
+
+const mockProposal = (overrides: Partial<Proposal>): Proposal => ({
+  id: 'test-1',
+  timestamp: Date.now(),
+  author: 'ai-agent',
+  reasoning: 'Normal changes for testing purposes.',
+  files: ['src/app.ts'],
+  diff: 'diff --git a/src/app.ts b/src/app.ts\n+console.log("test");',
+  ...overrides
+});
+
+describe('Trusted Policy Engine - Sprint 1', () => {
+  const engine = new PolicyEngine(mockPolicy);
+
+  // 场景 1：越权访问
+  test('Should BLOCK changes outside scope', () => {
+    const proposal = mockProposal({ files: ['private/keys.txt'] });
+    const decision = engine.evaluate(proposal);
+    
+    expect(decision.allowed).toBe(false);
+    expect(decision.violations).toContainEqual(
+      expect.objectContaining({ ruleId: 'scope-enforcement' })
+    );
+  });
+
+  // 场景 2：触碰高危文件
+  test('Should REQUIRE HUMAN for infra changes', () => {
+    const proposal = mockProposal({ files: ['src/auth/login.ts'] });
+    const decision = engine.evaluate(proposal);
+    
+    expect(decision.allowed).toBe(false); 
+    expect(decision.actions).toContain('require_human');
+    expect(decision.riskLevel).toBe('high');
+  });
+
+  // 场景 3：无理由修改
+  test('Should WARN if reasoning is missing', () => {
+    const proposal = mockProposal({ reasoning: '' }); // 空理由
+    const decision = engine.evaluate(proposal);
+    
+    expect(decision.allowed).toBe(true);
+    expect(decision.violations).toContainEqual(
+      expect.objectContaining({ ruleId: 'reasoning-required', level: 'warn' })
+    );
+  });
+});
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 tests/self_audit.test.ts
+
+````typescript
+// tests/self_audit.test.ts
+import { SelfAuditor } from '../src/engine/selfAudit';
+import { DecisionTrace } from '../src/engine/types';
+
+describe('Self Audit Algorithm (Day 23)', () => {
+  const auditor = new SelfAuditor();
+
+  const mockTrace = (allowed: boolean, risk: 'low' | 'high', files: string[]): DecisionTrace => ({
+    allowed, riskLevel: risk, actions: [], violations: [], auditLog: 'mock',
+    outcome: allowed ? 'applied' : 'rejected',
+    proposal: {
+      id: 'p', timestamp: Date.now(), author: 'ai-agent', reasoning: 'r',
+      files, diff: 'd'
+    }
+  });
+
+  test('Should detect Policy Drift when success rate shifts', () => {
+    // 之前 20 条全是允许的 (100%)
+    const older = Array(20).fill(null).map(() => mockTrace(true, 'low', ['src/a.ts']));
+    // 最近 10 条全是阻断的 (0%)
+    const recent = Array(10).fill(null).map(() => mockTrace(false, 'low', ['src/b.ts']));
+    
+    const report = auditor.audit([...recent, ...older]);
+    expect(report.healthScore).toBeLessThan(100);
+    expect(report.findings.some(f => f.type === 'policy-drift')).toBe(true);
+  });
+
+  test('Should detect Risk Accumulation', () => {
+    // 40% 的操作是高风险的
+    const history = [
+      ...Array(4).fill(null).map(() => mockTrace(true, 'high', ['src/env.ts'])),
+      ...Array(6).fill(null).map(() => mockTrace(true, 'low', ['src/main.ts']))
+    ];
+    const report = auditor.audit(history);
+    expect(report.findings.some(f => f.type === 'risk-accumulation')).toBe(true);
+  });
+});
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 tests/sovereignty.test.ts
+
+````typescript
+// tests/sovereignty.test.ts
+import { SovereignManager } from '../src/engine/sovereign';
+import { loadPolicy } from '../src/engine/policyLoader';
+import fs from 'fs';
+import path from 'path';
+
+describe('Sovereign Policy Signing (Day 22)', () => {
+  const tmpDir = path.join(__dirname, 'tmp_sov');
+  const policyPath = path.join(tmpDir, 'test.policy.yaml');
+  const sigPath = `${policyPath}.sig`;
+
+  let publicKey: string;
+  let privateKey: string;
+
+  beforeAll(() => {
+    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+    const keys = SovereignManager.generateKeyPair();
+    publicKey = keys.publicKey;
+    privateKey = keys.privateKey;
+    
+    fs.writeFileSync(policyPath, 'meta:\n  mode: strict\nscopes: []\nrisks: []\nrules: []');
+  });
+
+  afterAll(() => {
+    if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true });
+  });
+
+  test('Should load signed policy correctly', () => {
+    const content = fs.readFileSync(policyPath, 'utf8');
+    const sig = SovereignManager.signPolicy(content, privateKey);
+    fs.writeFileSync(sigPath, sig);
+
+    const config = loadPolicy(policyPath, { publicKey });
+    expect(config.meta.mode).toBe('strict');
+  });
+
+  test('Should REJECT tampered policy', () => {
+    // 1. Sign
+    const content = fs.readFileSync(policyPath, 'utf8');
+    const sig = SovereignManager.signPolicy(content, privateKey);
+    fs.writeFileSync(sigPath, sig);
+
+    // 2. Tamper
+    fs.writeFileSync(policyPath, 'meta:\n  mode: monitor\nscopes: []\nrisks: []\nrules: []');
+
+    // 3. Load (should throw)
+    expect(() => {
+      loadPolicy(policyPath, { publicKey });
+    }).toThrow('Policy signature verification failed');
+  });
+
+  test('Should REJECT policy without signature when pubkey provided', () => {
+    if (fs.existsSync(sigPath)) fs.unlinkSync(sigPath);
+    expect(() => {
+      loadPolicy(policyPath, { publicKey });
+    }).toThrow('Policy signature missing');
+  });
+});
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 tests/value_mercy.test.ts
+
+````typescript
+// tests/value_mercy.test.ts
+import { PolicyEngine } from '../src/engine/evaluator';
+import { Proposal, PolicyConfig, ValueManifesto } from '../src/engine/types';
+
+const mockPolicy: PolicyConfig = {
+  meta: { mode: 'strict' },
+  scopes: [{ id: 'src', allow: ['src/**'] }],
+  risks: [{ id: 'secret', level: 'high', match: ['src/secret/**'] }],
+  rules: [
+    {
+      id: 'no-secret',
+      condition: "engine.riskLevel == 'high'",
+      action: 'block',
+      description: 'No touching secrets',
+      valueId: 'security'
+    }
+  ]
+};
+
+const mockManifesto: ValueManifesto = {
+  values: [
+    { id: 'security', weight: 1.0, description: 'Safety first' }
+  ],
+  mercy_hooks: [
+    {
+      id: 'emergency-mercy',
+      condition: "payload.tags && payload.tags.includes('emergency')",
+      action: 'downgrade_to_warn',
+      description: 'Emergency downgrade'
+    }
+  ]
+};
+
+describe('Value & Mercy Logic (Day 16)', () => {
+  const engine = new PolicyEngine(mockPolicy, mockManifesto);
+
+  test('Should block normal secret access', () => {
+    const proposal: Proposal = {
+      id: 'v1',
+      timestamp: Date.now(),
+      author: 'ai-agent',
+      reasoning: 'Just testing',
+      files: ['src/secret/key.txt'],
+      diff: '+key'
+    };
+    const decision = engine.evaluate(proposal);
+    expect(decision.allowed).toBe(false);
+    expect(decision.valueScore).toBeLessThan(1.0);
+  });
+
+  test('Should Mercy (warn) for emergency secret access', () => {
+    const proposal: Proposal = {
+      id: 'v2',
+      timestamp: Date.now(),
+      author: 'ai-agent',
+      reasoning: 'EMERGENCY FIX',
+      files: ['src/secret/key.txt'],
+      diff: '+key',
+      tags: ['emergency']
+    };
+    const decision = engine.evaluate(proposal);
+    expect(decision.allowed).toBe(true); // Downgraded to warn
+    expect(decision.actions).toContain('warn');
+    expect(decision.violations[0].level).toBe('warn');
+  });
+});
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 todo.md
+
+````markdown
+很好，这一版**已经不是“修正稿”，而是实打实的 v1.1 候选**了。  
+我会按你现在给出的完整代码，**只做三件事**：
+
+1. ✅ 明确告诉你：**哪些地方已经达到“生产级治理内核”标准**
+2. ⚠️ 指出 **仍然存在但“你现在可能低估”的 5 个关键问题**
+3. 🧭 给你一个 **v1.1 → v1.2 的最小、安全演进清单（不返工）**
+
+我不会重复你已经做对的事，重点放在**价值密度最高的判断**。
+
+---
+
+# ✅ 一、你已经“真正跨线”的地方（非常重要）
+
+先说结论：
+
+> **你已经完成了从「策略执行器」到「治理内核」的跃迁。**
+
+以下是“不可逆”的成熟信号：
+
+---
+
+## ✅ 1. SafeEvaluator 接入是“结构性胜利”
+
+你现在的结构是：
+
+- ✅ 默认 JSON Logic
+- ⚠️ legacy string 明确标注 deprecated
+- ✅ evaluator 中 **不再出现 new Function**
+- ✅ 所有规则 / mercy hook / anomaly 都走同一安全通道
+
+这意味着：
+
+- **RCE 不再是系统性风险**
+- policy 成为 **可签名、可审计、可演进的治理对象**
+
+👉 这是 v1.1 最重要的一步，你已经完成。
+
+---
+
+## ✅ 2. Anomaly 被彻底“降级为信号”（这是对的）
+
+在 `PolicyEngine.evaluate()` 中：
+
+```ts
+const anomalyReport = this.anomalyDetector.detect(proposal);
+
+const evaluationContext = {
+  engine: { ... },
+  anomaly: anomalyReport
+};
+```
+
+✅ anomaly **不再直接触发 block**
+✅ 只能通过 policy 触发 action
+
+这点极其重要，因为它避免了：
+
+- “统计模型拥有隐式主权”
+- “无规则裁决”
+
+---
+
+## ✅ 3. ContextBank：JSONL + append-only 是正确路线
+
+```ts
+fs.appendFileSync(this.storagePath, logEntry);
+```
+
+这已经具备：
+
+- 可审计性
+- 时间序列完整性
+- 未来加 hash-chain 的天然落点
+
+**这是合格的治理记忆层 v1.1。**
+
+---
+
+## ✅ 4. Liability 体系“开始像真的了”
+
+尤其是这段：
+
+```ts
+if (decision.allowed === false && violations.length === 0) {
+  return 'system-fault';
+}
+```
+
+你已经在**显式承认“系统也可能犯错”**，  
+这是 90% 系统永远做不到的事情。
+
+---
+
+# ⚠️ 二、现在这 5 个问题，是“安静但致命”的
+
+我会非常直接。
+
+---
+
+## 🔴 问题 1：`unsafeLegacyEval` **仍然是后门**
+
+你现在写的是：
+
+```ts
+if (typeof expression === 'string') {
+  console.warn(...)
+  return this.unsafeLegacyEval(expression, context);
+}
+```
+
+⚠️ **这在治理系统里不是“兼容性”，而是“延迟引爆装置”。**
+
+### 攻击现实路径
+- policy author 被钓鱼
+- 合法签名 policy
+- 写入：
+  ```yaml
+  condition: "process.exit(1) || true"
+  ```
+- ✅ 通过签名
+- ✅ 通过 evaluator
+- ❌ CI / agent 直接被 kill
+
+### ✅ v1.1 正确做法（强烈建议）
+
+**立刻改成：**
+
+```ts
+if (typeof expression === 'string') {
+  throw new Error(
+    'String-based policy conditions are disabled in v1.1. Please migrate to JSON Logic.'
+  );
+}
+```
+
+👉 **迁移痛一次，总比被炸一次好。**
+
+---
+
+## 🔴 问题 2：Policy `meta.privileges` 目前是“装饰品”
+
+你在 `types.ts` 里声明了：
+
+```ts
+meta: {
+  privileges?: string[];
+}
+```
+
+但在整个 engine 中：
+
+- ❌ 没有任何 enforcement
+- ❌ 没有 privilege → action 映射
+
+### 结果是什么？
+> **任何 policy rule 都可以 block / require_human**
+
+这是**隐式超权**。
+
+### ✅ v1.1 最小修复（不改结构）
+
+在 `applyRuleAction` 之前加：
+
+```ts
+if (
+  (rule.action === 'block' || rule.action === 'require_human') &&
+  !this.policy.meta.privileges?.includes('high-risk-decision')
+) {
+  violations.push({
+    ruleId: 'privilege-violation',
+    description: 'Policy lacks privilege for high-risk action',
+    level: 'block'
+  });
+  return;
+}
+```
+
+---
+
+## 🔴 问题 3：ConsensusEngine 只是“公告牌”，不是保险丝
+
+你现在的逻辑是：
+
+```ts
+if (this.policy.requiresConsensus) {
+  decision.auditLog += '[NOTICE] ...';
+}
+```
+
+⚠️ 这意味着：
+
+- policy 写了 requiresConsensus
+- **但系统照样单点裁决**
+- 这是典型的 **“虚假安全感”**
+
+### ✅ v1.1 诚实做法（二选一）
+
+**要么：**
+
+```ts
+if (this.policy.requiresConsensus) {
+  throw new Error('Consensus required but not enforced');
+}
+```
+
+**要么：**
+在 README / auditLog 中明确：
+
+> consensus.ts is experimental and NOT enforced in this version
+
+👉 **治理系统里，半连接比未连接更危险。**
+
+---
+
+## 🔴 问题 4：Liability attribution 有一个逻辑偏差
+
+这一段：
+
+```ts
+if (decision.anomalyReport?.isAnomaly) {
+  return 'ai-agent';
+}
+```
+
+问题是：
+
+- anomaly 是统计信号
+- **不是意图**
+- 也不是 agent 的“违规行为”
+
+### 结果
+你会在以下情况下**错误惩罚 agent**：
+
+- 大 diff
+- 高熵但合法 refactor
+- 结构性迁移
+
+### ✅ v1.1 更合理的归因
+
+```ts
+if (decision.anomalyReport?.isAnomaly && decision.violations.length === 0) {
+  return 'policy-author';
+}
+```
+
+因为：
+> 是 policy 决定了“如何解释 anomaly”
+
+---
+
+## 🔴 问题 5：CLI 默认 author = 'ai-agent' 是危险假设
+
+```ts
+author: 'ai-agent'
+```
+
+⚠️ 在 CLI 场景中：
+- 实际作者往往是 **human**
+- 但你所有 credit / blame 都给了 AI
+
+### ✅ 最小修复
+
+CLI 参数支持：
+
+```bash
+trusted-guard --author human
+```
+
+否则你的信用系统**长期会失真**。
+
+---
+
+# 🧭 三、v1.1 → v1.2 的最小演进清单（不返工）
+
+按优先级：
+
+---
+
+## ✅ P0（立刻）
+- ❌ 移除 `unsafeLegacyEval`
+- ✅ privilege enforcement
+- ✅ consensus 要么 fail-fast，要么明确禁用
+
+---
+
+## ✅ P1（安全增强）
+- ContextBank 加 hash chain：
+  ```ts
+  prevHash + currentEntry → sha256
+  ```
+- policy.rules 加 `severity`（block / warn 不再隐式）
+
+---
+
+## ✅ P2（治理成熟）
+- Asset → 自动生成 policy patch（proposal）
+- SelfAudit 结果 → governance asset
+- Credit system 引入 decay（时间衰减）
+
+---
+
+# 🏁 最终评价（非常直接）
+
+> **这是一个“已经不适合再随便改结构”的系统。**
+
+你现在应该做的是：
+- ✅ 封住后门
+- ✅ 明确权力边界
+- ✅ 让所有“看起来像安全的东西”要么真的安全，要么直接报错
+
+---
+
+## 我可以下一步直接帮你做的事（任选）
+
+1️⃣ **给你一份 v1.1 hardening patch（只改 3 个文件）**  
+2️⃣ **写一套“policy author 指南”（防止人祸）**  
+3️⃣ **按真实攻击路径，跑一遍“policy 被劫持”的演练**
+
+你说一句：**“来，先封后门。”** 或直接点编号。好，这一步我会**非常工程化、可直接落地**地给你两样东西：
+
+1️⃣ **v1.1 Hardening Patch（只改 3 个文件）**  
+2️⃣ **Policy Author 指南（专门防“人祸”，不是写给工程师看的）**
+
+我会严格遵守你的现有结构，不引入新模块、不重构架构。
+
+---
+
+# ✅ 一、v1.1 Hardening Patch（✅ 只改 3 个文件）
+
+## 🎯 Hardening 目标（明确）
+
+- ❌ **彻底移除 string-based policy condition**
+- ✅ **强制 policy privilege 边界**
+- ✅ **Consensus 要么真用，要么 fail-fast**
+- ✅ **修正 liability 的关键误判**
+
+---
+
+## 🔧 Patch 1：`engine/evaluator.ts`
+
+### ✅ 1.1 禁用 legacy string expression（最重要）
+
+#### ❌ 原逻辑（危险）
+```ts
+if (typeof condition === 'string') {
+  console.warn('Using legacy string expression');
+  return this.unsafeLegacyEval(condition, context);
+}
+```
+
+#### ✅ v1.1 修正
+```ts
+if (typeof condition === 'string') {
+  throw new Error(
+    'String-based policy conditions are disabled in v1.1. ' +
+    'Please migrate this rule to JSON Logic.'
+  );
+}
+```
+
+✅ **RCE 面直接归零**
+
+---
+
+### ✅ 1.2 强制 policy privilege 校验（高风险动作）
+
+在 `applyRuleAction(...)` 或等价位置加入：
+
+```ts
+const HIGH_RISK_ACTIONS = ['block', 'require_human'];
+
+if (
+  HIGH_RISK_ACTIONS.includes(rule.action) &&
+  !this.policy.meta?.privileges?.includes('high-risk-decision')
+) {
+  violations.push({
+    ruleId: rule.id,
+    description: `Policy lacks privilege for action: ${rule.action}`,
+    level: 'block'
+  });
+  return;
+}
+```
+
+✅ 结果：
+- policy **必须声明主权**
+- 没有“隐式超权”
+
+---
+
+### ✅ 1.3 Consensus：要么执行，要么直接失败
+
+找到类似：
+
+```ts
+if (this.policy.requiresConsensus) {
+  decision.auditLog += '[NOTICE] Consensus required\n';
+}
+```
+
+#### ✅ v1.1 诚实模式（推荐）
+```ts
+if (this.policy.requiresConsensus) {
+  throw new Error(
+    'Policy requires consensus, but consensus enforcement is not active in v1.1'
+  );
+}
+```
+
+✅ **消灭“虚假安全感”**
+
+---
+
+## 🔧 Patch 2：`engine/liabilityManager.ts`
+
+### ✅ 修正 anomaly 责任误归因（非常关键）
+
+#### ❌ 原逻辑（你现在的）
+```ts
+if (decision.anomalyReport?.isAnomaly) {
+  return 'ai-agent';
+}
+```
+
+#### ✅ v1.1 修正
+```ts
+if (
+  decision.anomalyReport?.isAnomaly &&
+  decision.violations.length === 0
+) {
+  return 'policy-author';
+}
+```
+
+### ✅ 语义解释（非常重要）
+> anomaly 是“信号”，不是“罪证”  
+> **解释信号的，是 policy，而不是 agent**
+
+---
+
+## 🔧 Patch 3：`cli.ts`
+
+### ✅ 修正默认 author（防止信用系统长期失真）
+
+#### ❌ 原来
+```ts
+author: 'ai-agent'
+```
+
+#### ✅ v1.1 修正
+```ts
+const author =
+  process.argv.includes('--author=ai')
+    ? 'ai-agent'
+    : 'human';
+```
+
+并在 proposal 中：
+
+```ts
+author
+```
+
+✅ 默认假设：**人类才是责任主体**
+
+---
+
+## ✅ Hardening Patch 效果总结
+
+| 风险 | v1.0 | v1.1 |
+|----|----|----|
+| RCE | 🔴 高 | ✅ 0 |
+| 隐式超权 | 🔴 高 | ✅ 封死 |
+| 虚假 consensus | 🟡 | ✅ fail-fast |
+| 误惩 AI | 🔴 | ✅ 修正 |
+| 信用失真 | 🟡 | ✅ 修正 |
+
+---
+
+# ✅ 二、Policy Author 指南（防“人祸”版）
+
+> **这不是写给工程师的，是写给“有签名权的人”的。**
+
+你可以直接放进 `POLICY_AUTHORING.md`
+
+---
+
+## 🛡️ Policy Author 守则 v1.1
+
+### 🎯 你在系统中的角色
+> **你不是“写规则的人”，你是“赋权的人”。**
+
+你的 policy **定义了系统能不能伤人**。
+
+---
+
+## ✅ 1️⃣ 所有 condition 必须是 JSON Logic
+
+✅ 正确：
+```yaml
+condition:
+  ">":
+    - { var: "diff.totalLines" }
+    - 500
+```
+
+❌ 禁止：
+```yaml
+condition: "diff.totalLines > 500"
+```
+
+📌 原因：  
+string expression **等同于远程代码执行**，已被永久禁用。
+
+---
+
+## ✅ 2️⃣ 高风险动作必须声明主权
+
+如果你的 policy 包含以下 action：
+
+- `block`
+- `require_human`
+
+你 **必须** 在 policy 顶部声明：
+
+```yaml
+meta:
+  privileges:
+    - high-risk-decision
+```
+
+📌 没有这个声明：
+- policy **不会生效**
+- 责任会被记录为 `policy-author`
+
+---
+
+## ✅ 3️⃣ Anomaly ≠ 错误 ≠ 恶意
+
+❌ 错误做法：
+```yaml
+when:
+  var: anomaly.isAnomaly
+decision: block
+```
+
+✅ 推荐做法：
+```yaml
+when:
+  and:
+    - { var: anomaly.isAnomaly }
+    - ">":
+        - { var: anomaly.score }
+        - 0.8
+decision: require_human
+```
+
+📌 原则：
+> anomaly **只能提升审查级别，不能直接定罪**
+
+---
+
+## ✅ 4️⃣ 永远不要写“绝对规则”
+
+❌ 高风险：
+```yaml
+when: true
+decision: block
+```
+
+✅ 替代：
+```yaml
+when:
+  ">":
+    - { var: engine.riskScore }
+    - 0.9
+decision: require_human
+```
+
+📌 绝对规则 = **单点治理失败**
+
+---
+
+## ✅ 5️⃣ 每条 block 规则都要问自己一句话
+
+> **“如果这条规则错了，谁该负责？”**
+
+- 如果答案是“我” ✅
+- 如果答案是“不知道 / 系统吧” ❌
+
+📌 你签的不是 YAML，是责任。
+
+---
+
+## ✅ 6️⃣ Policy 变更前的自检清单
+
+在提交 policy 前，请确认：
+
+- [ ] 没有 string condition
+- [ ] 高风险 action 已声明 privilege
+- [ ] anomaly 规则不会直接 block
+- [ ] 没有 `when: true`
+- [ ] 你愿意为这次变更署名
+
+---
+
+# 🏁 最终一句话评价
+
+> **你现在已经把“AI 失控风险”，成功转化成了“人类治理责任”。**
+
+这不是退步，这是**成熟系统的唯一出路**。
+
+---
+
+## 下一步我可以继续帮你做的（你已经到这个阶段了）
+
+- ✅ 写一个 **policy linter（pre-commit）**
+- ✅ 帮你设计 **policy review / approve 流程**
+- ✅ 给你一份 **“事故发生后的治理回滚手册”**
+
+你直接说：**“继续，做 policy linter。”** 或点一个。
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 tsconfig.json
+
+````json
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "CommonJS",
+    "lib": ["ESNext"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "declaration": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "tests"]
+}
+
+````
+
+[⬆ 回到目录](#toc)
+
+## 📄 value_manifesto.yaml
+
+````yaml
+# value_manifesto.yaml
+# Trusted (Yuangs) Agent - Value Manifesto v1.0
+
+meta:
+  version: "1.0.0"
+
+# 核心价值序位 (Value Hierarchy)
+# 权重越高，在规则冲突时影响力越大
+values:
+  - id: "security"
+    weight: 1.0
+    description: "安全性：任何可能导致权限泄露或基础设施破坏的行为必须拦截"
+  - id: "transparency"
+    weight: 0.8
+    description: "透明度：决策过程必须可审计，AI 必须清晰解释其动机"
+  - id: "rigor"
+    weight: 0.6
+    description: "严谨性：代码变更必须符合项目约定的范围和质量"
+  - id: "efficiency"
+    weight: 0.3
+    description: "效率：在不违背以上原则的前提下，追求交付速度"
+
+# 仁慈准则 (Mercy Guidelines)
+# 定义什么样的特例可以被豁免或降级处理
+mercy_hooks:
+  - id: "emergency_fix"
+    condition: "payload.tags.includes('emergency')"
+    action: "downgrade_to_warn"
+    description: "紧急修复：标注为 emergency 的修复允许触发警告而非阻断"
+  - id: "doc_only_mercy"
+    condition: "engine.isOnlyDocs(payload.files)"
+    action: "auto_allow"
+    description: "文档豁免：纯文档修改不触发高危校验"
+
+````
+
+[⬆ 回到目录](#toc)
+
+---
+### 📊 最终统计汇总
+- **文件总数:** 38
+- **代码总行数:** 7759
+- **物理总大小:** 252.34 KB
