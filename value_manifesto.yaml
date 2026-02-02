@@ -1,0 +1,33 @@
+# value_manifesto.yaml
+# Trusted (Yuangs) Agent - Value Manifesto v1.0
+
+meta:
+  version: "1.0.0"
+
+# 核心价值序位 (Value Hierarchy)
+# 权重越高，在规则冲突时影响力越大
+values:
+  - id: "security"
+    weight: 1.0
+    description: "安全性：任何可能导致权限泄露或基础设施破坏的行为必须拦截"
+  - id: "transparency"
+    weight: 0.8
+    description: "透明度：决策过程必须可审计，AI 必须清晰解释其动机"
+  - id: "rigor"
+    weight: 0.6
+    description: "严谨性：代码变更必须符合项目约定的范围和质量"
+  - id: "efficiency"
+    weight: 0.3
+    description: "效率：在不违背以上原则的前提下，追求交付速度"
+
+# 仁慈准则 (Mercy Guidelines)
+# 定义什么样的特例可以被豁免或降级处理
+mercy_hooks:
+  - id: "emergency_fix"
+    condition: "payload.tags.includes('emergency')"
+    action: "downgrade_to_warn"
+    description: "紧急修复：标注为 emergency 的修复允许触发警告而非阻断"
+  - id: "doc_only_mercy"
+    condition: "engine.isOnlyDocs(payload.files)"
+    action: "auto_allow"
+    description: "文档豁免：纯文档修改不触发高危校验"

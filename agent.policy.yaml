@@ -1,0 +1,52 @@
+# agent.policy.yaml
+# Trusted (Yuangs) Agent - Default Policy v1.0
+
+meta:
+  name: "trusted-default-v1"
+  version: "1.0.0"
+  mode: "strict" # options: strict | monitor
+
+# 1. 作用域定义 (Scope)
+# AI 只能在这些围栏里活动
+scopes:
+  - id: "source-code"
+    allow: ["src/**", "lib/**", "components/**", "learning/AI/trusted-agent/**"]
+  - id: "documentation"
+    allow: ["docs/**", "README.md"]
+
+# 2. 风险定义 (Risk Packs)
+# 触碰这些地方会被视为高风险，必须人工确认
+risks:
+  - id: "infra-danger"
+    level: "high"
+    match: ["**/.env*", "**/docker-compose.yml", "**/*.tf"]
+  - id: "auth-module"
+    level: "high"
+    match: ["src/auth/**", "src/security/**"]
+
+# 3. 核心规则 (Rules)
+# 这是不可逾越的红线
+rules:
+  # 完整性规则
+  - id: "must-have-diff"
+    description: "Reject any proposal without explicit diff content"
+    check: "payload.diff.length > 0"
+    action: "block"
+
+  # 边界规则
+  - id: "scope-enforcement"
+    description: "Reject changes outside allowed scopes"
+    check: "engine.isScoped(payload.files)"
+    action: "block"
+
+  # 解释性规则
+  - id: "reasoning-required"
+    description: "Must provide context/reasoning for changes"
+    check: "payload.reasoning.length > 10"
+    action: "warn" # v1阶段先警告，v2改为block
+
+  # 风险控制规则
+  - id: "high-risk-gate"
+    description: "High risk changes require explicit human confirmation"
+    condition: "engine.riskLevel == 'high'"
+    action: "require_human"
