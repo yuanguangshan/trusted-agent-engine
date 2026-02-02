@@ -42,9 +42,9 @@ export class LiabilityManager {
   attribute(decision: Partial<Decision>): 'ai-agent' | 'human-approver' | 'policy-author' | 'system-fault' {
     // 逻辑漏洞检测：如果没有明确违反规则却被拦截了，归类为系统故障或策略设计缺陷
     if (decision.allowed === false && (!decision.violations || decision.violations.length === 0)) {
-       // 特殊情况：如果是被异常检测拦截且没有匹配规则
+       // v1.1 Hardening: 如果只是异常检测拦截（没有明确规则），归类为 policy-author（没说怎么处理该信号）
        if (decision.anomalyReport?.isAnomaly) {
-         return 'ai-agent'; // 依然归类为 AI 行为异常
+         return 'policy-author';
        }
        return 'system-fault';
     }

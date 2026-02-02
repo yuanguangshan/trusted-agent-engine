@@ -60,11 +60,14 @@ async function main() {
 
   const analysis = parseUnifiedDiff(diff);
   
+  // v1.1 Hardening: 显式区分作者，防止信用系统失真
+  const author = process.argv.some(arg => arg === '--author=ai') ? 'ai-agent' : 'human';
+
   const proposal: Proposal = {
     id: `cli-${Date.now()}`,
     timestamp: Date.now(),
-    author: 'ai-agent',
-    reasoning: 'Changes from local environment.', // In a real scenario, this might be passed as an argument
+    author: author as any,
+    reasoning: 'Changes from local environment.', 
     files: analysis.filesTouched,
     diff: diff
   };

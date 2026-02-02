@@ -131,15 +131,34 @@ export class PolicyEngine {
 
     decision.auditLog = this.buildAuditLog(proposal, actions, violations);
 
-    // v1.1: 共识引擎接入点
+    // v1.1 Hardening: 共识引擎接入点 - 诚实模式 (Fail-fast)
     if (this.policy.requiresConsensus) {
-      decision.auditLog += '\n[NOTICE] This decision requires multi-party consensus verification.';
+      throw new Error(
+        'Policy requires consensus, but consensus enforcement (ConsensusEngine) is not yet active in v1.1. ' +
+        'Please disable requiresConsensus in policy or implement real consensus flow.'
+      );
     }
 
     return decision;
   }
 
   private applyRuleAction(rule: any, actions: PolicyAction[], violations: Decision['violations']) {
+    const HIGH_RISK_ACTIONS = ['block', 'require_human'];
+
+    // v1.1 Hardening: 强制检查 Policy 是否拥有执行高危动作的特权
+    if (
+      HIGH_RISK_ACTIONS.includes(rule.action) &&
+      !this.policy.meta?.privileges?.includes('high-risk-decision')
+    ) {
+      violations.push({
+        ruleId: 'privilege-violation',
+        description: `Policy rule "${rule.id}" lacks privilege for action: ${rule.action}. Meta privileges must include "high-risk-decision".`,
+        level: 'block'
+      });
+      actions.push('block'); // 权限不足时强制拦截
+      return;
+    }
+
     actions.push(rule.action);
 
     const level = (rule.action === 'block' || rule.action === 'require_human') ? 'block' : 'warn';
