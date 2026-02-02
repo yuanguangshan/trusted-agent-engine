@@ -105,10 +105,12 @@ export class PolicyEngine {
     // -----------------------------
     // 4. Final Decision（裁决合成）
     // -----------------------------
-    const blocked = actions.includes('block') || actions.includes('require_human');
+    const isHardBlocked = actions.includes('block');
+    const requiresHuman = actions.includes('require_human');
 
     const decision: Decision = {
-      allowed: !blocked,
+      allowed: !isHardBlocked && !requiresHuman, // 机器不可直接执行
+      requiresHuman,
       riskLevel,
       actions,
       violations,

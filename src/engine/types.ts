@@ -4,7 +4,7 @@
 export interface Proposal {
   id: string;
   timestamp: number;
-  author: 'ai-agent';
+  author: 'ai-agent' | 'human'; // v1.1 Fix: 支持人类作者
   
   // 核心载荷
   reasoning: string;     // AI 必须解释为什么改
@@ -87,7 +87,8 @@ export type PolicyAction = 'allow' | 'warn' | 'block' | 'require_human';
 
 // 3. 输出：引擎的判决 (这是最关键的结构)
 export interface Decision {
-  allowed: boolean;      // 最终是否放行
+  allowed: boolean;      // 机器是否可直接执行
+  requiresHuman: boolean; // v1.1: 是否需要人工审批
   riskLevel: 'low' | 'medium' | 'high';
   
   // 判决详情
