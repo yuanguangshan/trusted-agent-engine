@@ -6,7 +6,7 @@ describe('Self Audit Algorithm (Day 23)', () => {
   const auditor = new SelfAuditor();
 
   const mockTrace = (allowed: boolean, risk: 'low' | 'high', files: string[]): DecisionTrace => ({
-    allowed, riskLevel: risk, actions: [], violations: [], auditLog: 'mock',
+    allowed, requiresHuman: false, riskLevel: risk, actions: [], violations: [], auditLog: 'mock',
     outcome: allowed ? 'applied' : 'rejected',
     proposal: {
       id: 'p', timestamp: Date.now(), author: 'ai-agent', reasoning: 'r',

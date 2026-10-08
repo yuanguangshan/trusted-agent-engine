@@ -3,7 +3,7 @@ import { PolicyEngine } from '../src/engine/evaluator';
 import { Proposal, PolicyConfig } from '../src/engine/types';
 
 const mockPolicy: PolicyConfig = {
-  meta: { mode: 'strict' },
+  meta: { mode: 'strict', privileges: ['high-risk-decision'] },
   scopes: [
     { id: 'source-code', allow: ['src/**', 'lib/**', 'components/**'] },
     { id: 'documentation', allow: ['docs/**', 'README.md'] }
@@ -16,25 +16,25 @@ const mockPolicy: PolicyConfig = {
     {
       id: 'must-have-diff',
       description: 'Reject any proposal without explicit diff content',
-      check: 'payload.diff.length > 0',
+      check: { ">": [{ "var": "payload.diff.length" }, 0] },
       action: 'block'
     },
     {
       id: 'scope-enforcement',
       description: 'Reject changes outside allowed scopes',
-      check: 'engine.isScoped(payload.files)',
+      check: { "var": "engine.isScoped" },
       action: 'block'
     },
     {
       id: 'reasoning-required',
       description: 'Must provide context/reasoning for changes',
-      check: 'payload.reasoning.length > 10',
+      check: { ">": [{ "var": "payload.reasoning.length" }, 10] },
       action: 'warn'
     },
     {
       id: 'high-risk-gate',
       description: 'High risk changes require explicit human confirmation',
-      condition: "engine.riskLevel == 'high'",
+      condition: { "==": [{ "var": "engine.riskLevel" }, "high"] },
       action: 'require_human'
     }
   ]

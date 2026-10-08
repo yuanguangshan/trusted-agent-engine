@@ -111,6 +111,10 @@ export interface Decision {
   // 异常报告 (Day 19)
   anomalyReport?: AnomalyReport;
 
+  // v2.0: 政策签名核验状态（TrustedGuard 返回）
+  // false = 公钥缺失或验签未执行，调用方必须知道这份政策是"未经主权确认"的
+  signatureVerified?: boolean;
+
   // 审计日志 (存入 Context Bank)
   auditLog: string; 
 }
@@ -120,4 +124,3 @@ export interface DecisionTrace extends Decision {
   proposal: Proposal;
   outcome: 'applied' | 'rejected' | 'pending'; // 最终的执行状态
 }
-// test change

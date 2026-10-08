@@ -5,13 +5,13 @@ import fs from 'fs';
 import path from 'path';
 
 const mockPolicy: PolicyConfig = {
-  meta: { mode: 'strict' },
+  meta: { mode: 'strict', privileges: ['high-risk-decision'] },
   scopes: [{ id: 'src', allow: ['src/**'] }],
   risks: [{ id: 'infra', level: 'high', match: ['**/.env*'] }],
   rules: [
     {
       id: 'no-infra',
-      condition: "engine.riskLevel == 'high'",
+      condition: { "==": [{ "var": "engine.riskLevel" }, "high"] },
       action: 'block',
       description: 'Blocking infra'
     }

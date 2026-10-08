@@ -3,13 +3,13 @@ import { PolicyEngine } from '../src/engine/evaluator';
 import { Proposal, PolicyConfig, ValueManifesto } from '../src/engine/types';
 
 const mockPolicy: PolicyConfig = {
-  meta: { mode: 'strict' },
+  meta: { mode: 'strict', privileges: ['high-risk-decision'] },
   scopes: [{ id: 'src', allow: ['src/**'] }],
   risks: [{ id: 'secret', level: 'high', match: ['src/secret/**'] }],
   rules: [
     {
       id: 'no-secret',
-      condition: "engine.riskLevel == 'high'",
+      condition: { "==": [{ "var": "engine.riskLevel" }, "high"] },
       action: 'block',
       description: 'No touching secrets',
       valueId: 'security'
@@ -24,7 +24,7 @@ const mockManifesto: ValueManifesto = {
   mercy_hooks: [
     {
       id: 'emergency-mercy',
-      condition: "payload.tags && payload.tags.includes('emergency')",
+      condition: { "and": [{ "var": "payload.tags" }, { "in": ["emergency", { "var": "payload.tags" }] }] },
       action: 'downgrade_to_warn',
       description: 'Emergency downgrade'
     }

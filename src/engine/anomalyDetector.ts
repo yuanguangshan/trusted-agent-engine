@@ -49,9 +49,11 @@ export class AnomalyDetector {
       return true;
     }
 
-    // 检查不可见字符 (除了常规空白符)
-    const nonAscii = /[^\x00-\x7F]/g;
-    const matches = diff.match(nonAscii);
+    // 只检查真正的不可见/控制字符（零宽、Bidi 覆写、控制码）。
+    // 不要用"非 ASCII"当混淆信号 —— 中文/日文注释是正常内容，
+    // 本项目通篇中文，用 non-ASCII 会把合法改动误判成"二进制走私"。
+    const invisible = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u00AD\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFEFF]/g;
+    const matches = diff.match(invisible);
     if (matches && matches.length > 20) {
       return true;
     }

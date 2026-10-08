@@ -4,7 +4,7 @@ import { Proposal, PolicyConfig, Decision, PolicyAction, ValueManifesto } from '
 import { minimatch } from 'minimatch';
 import { LiabilityManager } from './liabilityManager';
 import { AnomalyDetector } from './anomalyDetector';
-import { SafeEvaluator } from './safeEvaluator';
+import { SafeEvaluator, PolicyEvaluationError } from './safeEvaluator';
 
 export class PolicyEngine {
   private policy: PolicyConfig;
@@ -29,10 +29,12 @@ export class PolicyEngine {
     // 1. Signals Preparation（信号准备）
     // -----------------------------
     let riskLevel: Decision['riskLevel'] = 'low';
+    const RISK_ORDER: Record<Decision['riskLevel'], number> = { low: 1, medium: 2, high: 3 };
     for (const risk of this.policy.risks) {
       for (const pattern of risk.match) {
         if (proposal.files.some(file => minimatch(file, pattern))) {
-          riskLevel = risk.level;
+          // 取命中的最高风险，与 risks 数组里的书写顺序无关
+          if (RISK_ORDER[risk.level] > RISK_ORDER[riskLevel]) riskLevel = risk.level;
         }
       }
     }
@@ -54,18 +56,28 @@ export class PolicyEngine {
     // 2. Rule Evaluation（规则引擎 - 基于信号）
     // -----------------------------
     for (const rule of this.policy.rules) {
-      // condition: 如果满足，则执行 action
-      if (rule.condition) {
-        if (SafeEvaluator.evaluate(rule.condition, evaluationContext)) {
-          this.applyRuleAction(rule, actions, violations);
+      try {
+        // condition: 如果满足，则执行 action
+        if (rule.condition) {
+          if (SafeEvaluator.evaluate(rule.condition, evaluationContext)) {
+            this.applyRuleAction(rule, actions, violations);
+          }
         }
-      }
 
-      // check: 如果不满足，则执行 action
-      if (rule.check) {
-        if (!SafeEvaluator.evaluate(rule.check, evaluationContext)) {
-          this.applyRuleAction(rule, actions, violations);
+        // check: 如果不满足，则执行 action
+        if (rule.check) {
+          if (!SafeEvaluator.evaluate(rule.check, evaluationContext)) {
+            this.applyRuleAction(rule, actions, violations);
+          }
         }
+      } catch (e) {
+        // 求值失败（含被禁用的字符串表达式）→ fail-closed：拦截而不是放行
+        violations.push({
+          ruleId: `${rule.id}:eval-error`,
+          description: (e as Error).message,
+          level: 'block',
+        });
+        actions.push('block');
       }
     }
 
@@ -89,7 +101,15 @@ export class PolicyEngine {
 
       // 仁慈钩子处理（依然使用 SafeEvaluator）
       for (const hook of this.manifesto.mercy_hooks) {
-        if (SafeEvaluator.evaluate(hook.condition, evaluationContext)) {
+        let hookOk = false;
+        try {
+          hookOk = SafeEvaluator.evaluate(hook.condition, evaluationContext);
+        } catch (e) {
+          // 仁慈钩子求值失败 → 不发放仁慈（fail-closed），继续后面的裁决
+          console.error(`[Governance] Mercy hook "${hook.id}" failed, mercy withheld:`, (e as Error).message);
+          continue;
+        }
+        if (hookOk) {
           if (hook.action === 'downgrade_to_warn') {
             actions = actions.map(a => (a === 'block' || a === 'require_human') ? 'warn' : a as PolicyAction);
             violations = violations.map(v => ({ ...v, level: 'warn' }));
@@ -105,8 +125,16 @@ export class PolicyEngine {
     // -----------------------------
     // 4. Final Decision（裁决合成）
     // -----------------------------
-    const isHardBlocked = actions.includes('block');
-    const requiresHuman = actions.includes('require_human');
+    let isHardBlocked = actions.includes('block');
+    let requiresHuman = actions.includes('require_human');
+
+    // meta.mode === 'monitor'：演练模式，只记录不拦截
+    if (this.policy.meta?.mode === 'monitor' && (isHardBlocked || requiresHuman)) {
+      actions = actions.map(a => (a === 'block' || a === 'require_human') ? 'warn' : a);
+      violations = violations.map(v => ({ ...v, level: 'warn' as const }));
+      isHardBlocked = false;
+      requiresHuman = false;
+    }
 
     const decision: Decision = {
       allowed: !isHardBlocked && !requiresHuman, // 机器不可直接执行

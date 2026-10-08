@@ -7,6 +7,7 @@ describe('Asset Manager (Day 20)', () => {
 
   const mockTrace = (allowed: boolean, files: string[], rules: string[] = []): DecisionTrace => ({
     allowed,
+    requiresHuman: false,
     riskLevel: 'low',
     actions: allowed ? [] : ['block'],
     violations: rules.map(r => ({ ruleId: r, description: r, level: 'block' })),

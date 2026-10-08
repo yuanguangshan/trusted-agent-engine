@@ -45,12 +45,15 @@ export class ConsensusEngine {
       }
     }
 
-    const agreementRate = allowedWeight / totalWeight;
-    const finalAllowed = !isVetoed && agreementRate > 0.6; // 必须无否决且加权通过率 > 60%
+    // 权重全为 0 时避免除零产生 NaN（退化为"不通过"，fail-closed）
+    const agreementRate = totalWeight > 0 ? allowedWeight / totalWeight : 0;
+    const requiresHuman = votes.some(v => v.decision.requiresHuman);
+    const finalAllowed = !isVetoed && !requiresHuman && agreementRate > 0.6; // 无否决、无需人工、加权通过率 > 60%
 
     // 合并后的决策
     const finalDecision: Decision = {
       allowed: finalAllowed,
+      requiresHuman,
       riskLevel: maxRiskLevel,
       actions: Array.from(new Set(allActions)),
       violations: this.uniqueViolations(allViolations),

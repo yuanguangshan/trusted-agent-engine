@@ -29,17 +29,31 @@ export class TrustedGuard {
    * 一键决策检查
    * @param workspaceRoot 项目根目录
    * @param proposal 变更提案
+   * @param options.allowUnsignedPolicy 显式接受"无公钥、不验签"。
+   *        默认 false（fail-closed）：公钥缺失时直接抛错，而不是静默跳过验签 ——
+   *        否则删除 .ai/sovereign.pub 就能让篡改后的策略畅通无阻。
    */
-  static async evaluate(workspaceRoot: string, proposal: Proposal): Promise<Decision> {
+  static async evaluate(
+    workspaceRoot: string,
+    proposal: Proposal,
+    options?: { allowUnsignedPolicy?: boolean },
+  ): Promise<Decision> {
     const policyPath = path.join(workspaceRoot, 'agent.policy.yaml');
     const manifestoPath = path.join(workspaceRoot, 'value_manifesto.yaml');
     const pubKeyPath = path.join(workspaceRoot, '.ai', 'sovereign.pub');
 
-    // 1. 加载主权公钥 (如果存在)
-    let publicKey: string | undefined;
-    if (fs.existsSync(pubKeyPath)) {
-      publicKey = fs.readFileSync(pubKeyPath, 'utf8');
+    // 1. 加载主权公钥
+    if (!fs.existsSync(pubKeyPath)) {
+      if (!options?.allowUnsignedPolicy) {
+        throw new Error(
+          `[Sovereignty] Sovereign public key not found at ${pubKeyPath}. ` +
+          `Refusing to evaluate an unverifiable policy (fail-closed). ` +
+          `Run "npx trusted-sign init" to create keys, or pass { allowUnsignedPolicy: true } to opt out explicitly.`
+        );
+      }
+      console.error('[Sovereignty] WARNING: policy evaluated WITHOUT signature verification (allowUnsignedPolicy).');
     }
+    const publicKey = fs.existsSync(pubKeyPath) ? fs.readFileSync(pubKeyPath, 'utf8') : undefined;
 
     // 2. 加载政策 (带签名校验)
     const config = loadPolicy(policyPath, { publicKey });
@@ -53,6 +67,7 @@ export class TrustedGuard {
     // 4. 执行评估
     const engine = new PolicyEngine(config, manifesto, workspaceRoot);
     const decision = engine.evaluate(proposal);
+    decision.signatureVerified = publicKey !== undefined;
 
     // 5. 异步记录审计日志
     const bank = new ContextBank(workspaceRoot);

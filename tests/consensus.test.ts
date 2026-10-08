@@ -7,6 +7,7 @@ describe('Consensus Engine (Day 18)', () => {
 
   const mockDecision = (allowed: boolean, risk: Decision['riskLevel'] = 'low'): Decision => ({
     allowed,
+    requiresHuman: false,
     riskLevel: risk,
     actions: allowed ? [] : ['block'],
     violations: [],

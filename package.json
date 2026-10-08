@@ -23,7 +23,9 @@
     "test": "jest",
     "build": "tsc",
     "cli": "ts-node src/cli.ts",
-    "start-api": "ts-node src/server.ts"
+    "start-api": "ts-node src/server.ts",
+    "prepare": "tsc",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "express": "^5.2.1",

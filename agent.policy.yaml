@@ -3,8 +3,11 @@
 
 meta:
   name: "trusted-default-v1"
-  version: "1.0.0"
+  version: "2.0.0"
   mode: "strict" # options: strict | monitor
+  # v1.1 起：block / require_human 属于高危动作，必须显式声明特权，
+  # 否则引擎会以 privilege-violation 强制拦截所有此类规则（fail-closed）。
+  privileges: ["high-risk-decision"]
 
 # 1. 作用域定义 (Scope)
 # AI 只能在这些围栏里活动
@@ -30,23 +33,24 @@ rules:
   # 完整性规则
   - id: "must-have-diff"
     description: "Reject any proposal without explicit diff content"
-    check: "payload.diff.length > 0"
+    # JSON Logic（v1.1 起字符串表达式已被禁用，见 SafeEvaluator）
+    check: { ">": [{ "var": "payload.diff.length" }, 0] }
     action: "block"
 
   # 边界规则
   - id: "scope-enforcement"
     description: "Reject changes outside allowed scopes"
-    check: "engine.isScoped(payload.files)"
+    check: { "var": "engine.isScoped" }
     action: "block"
 
   # 解释性规则
   - id: "reasoning-required"
     description: "Must provide context/reasoning for changes"
-    check: "payload.reasoning.length > 10"
+    check: { ">": [{ "var": "payload.reasoning.length" }, 10] }
     action: "warn" # v1阶段先警告，v2改为block
 
   # 风险控制规则
   - id: "high-risk-gate"
     description: "High risk changes require explicit human confirmation"
-    condition: "engine.riskLevel == 'high'"
+    condition: { "==": [{ "var": "engine.riskLevel" }, "high"] }
     action: "require_human"

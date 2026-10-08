@@ -36,12 +36,18 @@ npx trusted-sign init
 ```bash
 # 1. 编写规则
 cat > agent.policy.yaml <<EOF
+meta:
+  mode: "strict"
+  # block / require_human 是高危动作，必须声明特权，否则一律被强制拦截
+  privileges: ["high-risk-decision"]
 scopes:
   - id: "src"
     allow: ["src/**"]
 rules:
   - id: "scope-enforcement"
-    check: "engine.isScoped(payload.files)"
+    description: "Reject changes outside allowed scopes"
+    # 条件必须是 JSON Logic 对象；字符串表达式自 v1.1 起会被直接拒绝
+    check: { "var": "engine.isScoped" }
     action: "block"
 EOF
 
@@ -112,4 +118,3 @@ const decision = engine.evaluate(myProposal);
 ## ⚖️ 许可证
 
 基于 MIT 协议分发。开发者拥有对 AI 的最高指挥权。
-# trusted-agent-engine

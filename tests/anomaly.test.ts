@@ -2,11 +2,17 @@
 import { PolicyEngine } from '../src/engine/evaluator';
 import { Proposal, PolicyConfig } from '../src/engine/types';
 
+// v1.1 设计：异常检测只产出信号(engine.isAnomaly)，是否拦截由策略自己决定
 const mockPolicy: PolicyConfig = {
-  meta: { mode: 'strict' },
+  meta: { mode: 'strict', privileges: ['high-risk-decision'] },
   scopes: [{ id: 'src', allow: ['src/**'] }],
   risks: [],
-  rules: []
+  rules: [{
+    id: 'anomaly-gate',
+    condition: { "var": "engine.isAnomaly" },
+    action: 'block',
+    description: 'Anomaly score crossed the threshold'
+  }]
 };
 
 describe('Anomaly Detection (Day 19)', () => {
