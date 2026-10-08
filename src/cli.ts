@@ -16,10 +16,16 @@ async function main() {
   const policyPath = path.join(process.cwd(), 'agent.policy.yaml');
   const pubKeyPath = path.join(process.cwd(), '.ai', 'sovereign.pub');
   let config;
+  let signatureVerified = false;
   try {
     const options: any = {};
-    if (fs.existsSync(pubKeyPath)) {
+    signatureVerified = fs.existsSync(pubKeyPath);
+    if (signatureVerified) {
       options.publicKey = fs.readFileSync(pubKeyPath, 'utf8');
+    } else {
+      // 本地 CLI：不硬拦，但必须大声说清楚"这份策略没验过签"
+      console.warn('\u26A0 WARNING: policy is NOT signature-verified (no .ai/sovereign.pub).');
+      console.warn('  Anyone can edit it undetected.  Fix: npx trusted-sign init && npx trusted-sign sign');
     }
     config = loadPolicy(policyPath, options);
   } catch (e) {
@@ -124,6 +130,7 @@ async function main() {
   if (decision.valueScore !== undefined) {
     console.log(`Value Score: ${decision.valueScore.toFixed(2)}`);
   }
+  console.log(`Signature Verified: ${signatureVerified}`);
   
   if (decision.accountability) {
     console.log(`Responsibility: ${decision.accountability.responsibleEntity.toUpperCase()}`);
